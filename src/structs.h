@@ -4,11 +4,11 @@
 #include "decklink_api.h"
 
 struct cdecklink_iterator {
-    IDeckLinkIterator* obj;
+    IDeckLinkIterator *obj;
 };
 
 struct cdecklink_device {
-    IDeckLink* obj;
+    IDeckLink *obj;
 };
 
 #endif //DECKLINK_C_STRUCTS_H

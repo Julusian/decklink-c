@@ -3,12 +3,12 @@
 #include "include/device.h"
 #include "structs.h"
 
-HRESULT cdecklink_next_device(cdecklink_iterator_t *it, cdecklink_device_t** device) {
+HRESULT cdecklink_next_device(cdecklink_iterator_t *it, cdecklink_device_t **device) {
     if (it != nullptr && it->obj != nullptr) {
-        IDeckLink* dev = nullptr;
+        IDeckLink *dev = nullptr;
         auto ok = it->obj->Next(&dev);
         if (SUCCEEDED(ok)) {
-            *device = (cdecklink_device_t*)malloc(sizeof(cdecklink_device_t));
+            *device = (cdecklink_device_t *) malloc(sizeof(cdecklink_device_t));
             (*device)->obj = dev;
         }
 
@@ -17,6 +17,7 @@ HRESULT cdecklink_next_device(cdecklink_iterator_t *it, cdecklink_device_t** dev
 
     return S_FALSE;
 }
+
 void cdecklink_destroy_device(cdecklink_device_t *device) {
     if (device != nullptr && device->obj != nullptr) {
         device->obj->Release();

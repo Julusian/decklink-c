@@ -11,6 +11,7 @@ struct cdecklink_iterator;
 typedef struct cdecklink_iterator cdecklink_iterator_t;
 
 cdecklink_iterator_t *cdecklink_create_iterator();
+
 void cdecklink_destroy_iterator(cdecklink_iterator_t *it);
 
 const char *cdecklink_api_version(cdecklink_iterator_t *it);
