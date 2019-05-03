@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+void cdecklink_free_string(const char* str);
+
 struct cdecklink_iterator;
 typedef struct cdecklink_iterator cdecklink_iterator_t;
 

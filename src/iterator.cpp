@@ -1,14 +1,17 @@
 #include <memory>
 
-#include "include/iterator.h"
 #include "structs.h"
+
+#include "include/iterator.h"
+
+void cdecklink_free_string(const char *str) {
+    free((void *) str);
+}
 
 cdecklink_iterator_t *cdecklink_create_iterator() {
     IDeckLinkIterator *iterator = CreateDeckLinkIteratorInstance();
     if (iterator == nullptr)
         return nullptr;
-
-    iterator->AddRef(); // TODO ??
 
     auto it = (cdecklink_iterator_t *) malloc(sizeof(cdecklink_iterator_t));
     it->obj = iterator;
@@ -18,7 +21,7 @@ cdecklink_iterator_t *cdecklink_create_iterator() {
 void cdecklink_destroy_iterator(cdecklink_iterator_t *it) {
     if (it != nullptr && it->obj != nullptr) {
         it->obj->Release();
-        it->obj = nullptr;
+        free(it);
     }
 }
 
