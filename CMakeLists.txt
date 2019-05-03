@@ -3,9 +3,6 @@ project(decklink_c)
 
 set(CMAKE_CXX_STANDARD 14)
 
-cmake_minimum_required(VERSION 3.10)
-project(decklink_c)
-
 set(SOURCES
         include/decklink_c.h
         src/decklink_api.h
@@ -48,5 +45,7 @@ include_directories(.)
 add_library(decklink_c STATIC ${SOURCES})
 
 target_link_libraries(decklink_c dl pthread)
+
+add_subdirectory(examples)
 
 install(TARGETS decklink_c DESTINATION .)
