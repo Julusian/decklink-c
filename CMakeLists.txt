@@ -7,12 +7,12 @@ cmake_minimum_required(VERSION 3.10)
 project(decklink_c)
 
 set(SOURCES
-        src/decklink_c.h
+        include/decklink_c.h
         src/decklink_api.h
         src/iterator.cpp
-        src/iterator.h
+        include/iterator.h
         src/device.cpp
-        src/device.h
+        include/device.h
 
         interop/Linux/include/DeckLinkAPI.h
         #        interop/Linux/include/DeckLinkAPI_v7_1.h
@@ -44,7 +44,7 @@ set(SOURCES
         interop/Linux/include/LinuxCOM.h
         )
 
-#add_executable(decklink_c main.cpp)
+include_directories(.)
 add_library(decklink_c STATIC ${SOURCES})
 
 target_link_libraries(decklink_c dl pthread)

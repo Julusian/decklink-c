@@ -1,7 +1,7 @@
 #ifndef DECKLINK_C_DEVICE_H
 #define DECKLINK_C_DEVICE_H
 
-#include "copy.h"
+#include "common.h"
 #include "iterator.h"
 
 #ifdef __cplusplus

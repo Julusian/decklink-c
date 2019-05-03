@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "device.h"
+#include "include/device.h"
 #include "structs.h"
 
 HRESULT cdecklink_next_device(cdecklink_iterator_t *it, cdecklink_device_t** device) {

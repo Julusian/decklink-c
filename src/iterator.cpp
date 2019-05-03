@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "iterator.h"
+#include "include/iterator.h"
 #include "structs.h"
 
 cdecklink_iterator_t *cdecklink_create_iterator() {

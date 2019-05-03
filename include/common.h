@@ -1,0 +1,6 @@
+#ifndef DECKLINK_C_COMMON_H
+#define DECKLINK_C_COMMON_H
+
+typedef int HRESULT;
+
+#endif //DECKLINK_C_COMMON_H

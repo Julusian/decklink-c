@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../interop/Linux/include/DeckLinkAPI.h"
+#include "interop/Linux/include/DeckLinkAPI.h"
 
 using String = const char*;
 using BOOL   = bool;

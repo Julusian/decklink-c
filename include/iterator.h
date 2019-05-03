@@ -1,7 +1,7 @@
 #ifndef DECKLINK_C_ITERATOR_H
 #define DECKLINK_C_ITERATOR_H
 
-#include "copy.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
