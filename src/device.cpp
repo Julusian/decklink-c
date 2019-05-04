@@ -1,4 +1,5 @@
 #include <memory>
+#include <atomic>
 
 #include "structs.h"
 
@@ -73,10 +74,10 @@ void cdecklink_destroy_device_output(cdecklink_device_output_t *output) {
 
 HRESULT
 cdecklink_device_output_does_support_video_mode(cdecklink_device_output_t *output, BMDDisplayMode displayMode,
-                                                  BMDPixelFormat pixelFormat,
-                                                  BMDVideoOutputFlags flags,
-                                                  BMDDisplayModeSupport *result,
-                                                  cdecklink_display_mode_t **resultDisplayMode) {
+                                                BMDPixelFormat pixelFormat,
+                                                BMDVideoOutputFlags flags,
+                                                BMDDisplayModeSupport *result,
+                                                cdecklink_display_mode_t **resultDisplayMode) {
     if (output != nullptr && output->obj != nullptr) {
         IDeckLinkDisplayMode *resultDisplayMode2;
         auto res = output->obj->DoesSupportVideoMode(displayMode, pixelFormat, flags, result, &resultDisplayMode2);
@@ -157,12 +158,80 @@ cdecklink_device_output_display_video_frame_sync(cdecklink_device_output_t *outp
 
 HRESULT
 cdecklink_device_output_schedule_video_frame(cdecklink_device_output_t *output, cdecklink_video_frame_t *theFrame,
-                                             int64_t displayTime, int64_t displayDuration, int64_t timeScale) {
+                                             BMDTimeValue displayTime, BMDTimeValue displayDuration,
+                                             BMDTimeScale timeScale) {
     if (output != nullptr && output->obj != nullptr) {
         IDeckLinkVideoFrame *frame = nullptr;
         if (theFrame != nullptr) frame = theFrame->obj;
 
         return output->obj->ScheduleVideoFrame(frame, displayTime, displayDuration, timeScale);
+    }
+
+    return S_FALSE;
+}
+
+class DeckLinkVideoOutputCallback : public IDeckLinkVideoOutputCallback {
+    std::atomic<int> ref_count_{0};
+    void *context_;
+    cdecklink_callback_schedule_frame_completed *completed_;
+    cdecklink_callback_playback_stopped *playback_stopped_;
+
+public:
+    DeckLinkVideoOutputCallback(void *context,
+                                cdecklink_callback_schedule_frame_completed *completed,
+                                cdecklink_callback_playback_stopped *playback_stopped)
+            : context_(context),
+              completed_(completed),
+              playback_stopped_(playback_stopped) {
+    }
+
+    // IUnknown
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+
+    ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+
+    ULONG STDMETHODCALLTYPE Release() override {
+        if (--ref_count_ == 0) {
+            delete this;
+            return 0;
+        }
+
+        return ref_count_;
+    }
+
+    // IDeckLinkVideoOutputCallback
+
+    HRESULT ScheduledFrameCompleted(/* in */ IDeckLinkVideoFrame *completedFrame, /* in */
+                                             BMDOutputFrameCompletionResult result) override {
+        if (completed_ != nullptr) {
+            auto frame2 = (cdecklink_video_frame_t *) malloc(sizeof(cdecklink_video_frame_t));
+            frame2->obj = completedFrame;
+
+            return completed_(context_, frame2, result);
+        }
+
+        return S_FALSE;
+    }
+
+    HRESULT ScheduledPlaybackHasStopped() override {
+        if (playback_stopped_ != nullptr) {
+            return playback_stopped_(context_);
+        }
+
+        return S_FALSE;
+    }
+};
+
+HRESULT cdecklink_device_output_set_scheduled_frame_completion_callback(cdecklink_device_output_t *output,
+                                                                        void *context,
+                                                                        cdecklink_callback_schedule_frame_completed *completed,
+                                                                        cdecklink_callback_playback_stopped *playback_stopped) {
+    if (output != nullptr && output->obj != nullptr) {
+        if (completed != nullptr || playback_stopped != nullptr) {
+            auto handler = new DeckLinkVideoOutputCallback(context, completed, playback_stopped);
+            return output->obj->SetScheduledFrameCompletionCallback(handler);
+        }
     }
 
     return S_FALSE;
@@ -198,7 +267,7 @@ HRESULT cdecklink_device_output_disable_audio_output(cdecklink_device_output_t *
 }
 
 HRESULT cdecklink_device_output_write_audio_samples_sync(cdecklink_device_output_t *output, void *buffer,
-                                                         uint32_t sampleFrameCount, uint32_t *sampleFramesWritten){
+                                                         uint32_t sampleFrameCount, uint32_t *sampleFramesWritten) {
     if (output != nullptr && output->obj != nullptr) {
         return output->obj->WriteAudioSamplesSync(buffer, sampleFrameCount, sampleFramesWritten);
     }
@@ -206,7 +275,7 @@ HRESULT cdecklink_device_output_write_audio_samples_sync(cdecklink_device_output
     return S_FALSE;
 }
 
-HRESULT cdecklink_device_output_begin_audio_preroll(cdecklink_device_output_t *output){
+HRESULT cdecklink_device_output_begin_audio_preroll(cdecklink_device_output_t *output) {
     if (output != nullptr && output->obj != nullptr) {
         return output->obj->BeginAudioPreroll();
     }
@@ -223,8 +292,8 @@ HRESULT cdecklink_device_output_end_audio_preroll(cdecklink_device_output_t *out
 }
 
 HRESULT cdecklink_device_output_schedule_audio_samples(cdecklink_device_output_t *output, void *buffer,
-                                                       uint32_t sampleFrameCount, int64_t streamTime,
-                                                       int64_t timeScale, uint32_t *sampleFramesWritten) {
+                                                       uint32_t sampleFrameCount, BMDTimeValue streamTime,
+                                                       BMDTimeScale timeScale, uint32_t *sampleFramesWritten) {
     if (output != nullptr && output->obj != nullptr) {
         return output->obj->ScheduleAudioSamples(buffer, sampleFrameCount, streamTime, timeScale, sampleFramesWritten);
     }
@@ -232,13 +301,15 @@ HRESULT cdecklink_device_output_schedule_audio_samples(cdecklink_device_output_t
     return S_FALSE;
 }
 
-HRESULT cdecklink_device_output_buffered_audio_sample_frame_count(cdecklink_device_output_t *output, uint32_t *bufferedSampleFrameCount) {
+HRESULT cdecklink_device_output_buffered_audio_sample_frame_count(cdecklink_device_output_t *output,
+                                                                  uint32_t *bufferedSampleFrameCount) {
     if (output != nullptr && output->obj != nullptr) {
         return output->obj->GetBufferedAudioSampleFrameCount(bufferedSampleFrameCount);
     }
 
     return S_FALSE;
 }
+
 HRESULT cdecklink_device_output_flush_buffered_audio_samples(cdecklink_device_output_t *output) {
     if (output != nullptr && output->obj != nullptr) {
         return output->obj->FlushBufferedAudioSamples();
@@ -248,3 +319,78 @@ HRESULT cdecklink_device_output_flush_buffered_audio_samples(cdecklink_device_ou
 }
 
 //virtual HRESULT SetAudioCallback (/* in */ IDeckLinkAudioOutputCallback *theCallback) = 0;
+
+/* Output Control */
+
+HRESULT
+cdecklink_device_output_start_scheduled_playback(cdecklink_device_output_t *output, BMDTimeValue playbackStartTime,
+                                                 BMDTimeScale timeScale, double playbackSpeed) {
+    if (output != nullptr && output->obj != nullptr) {
+        return output->obj->StartScheduledPlayback(playbackStartTime, timeScale, playbackSpeed);
+    }
+
+    return S_FALSE;
+}
+
+HRESULT
+cdecklink_device_output_stop_scheduled_playback(cdecklink_device_output_t *output, BMDTimeValue stopPlaybackAtTime,
+                                                BMDTimeValue *actualStopTime, BMDTimeScale timeScale) {
+    if (output != nullptr && output->obj != nullptr) {
+        return output->obj->StopScheduledPlayback(stopPlaybackAtTime, actualStopTime, timeScale);
+    }
+
+    return S_FALSE;
+}
+
+HRESULT cdecklink_device_output_is_scheduled_playback_running(cdecklink_device_output_t *output, bool *active) {
+    if (output != nullptr && output->obj != nullptr) {
+        return output->obj->IsScheduledPlaybackRunning(active);
+    }
+
+    return S_FALSE;
+}
+
+HRESULT cdecklink_device_output_scheduled_stream_time(cdecklink_device_output_t *output, BMDTimeScale desiredTimeScale,
+                                                      BMDTimeValue *streamTime, double *playbackSpeed) {
+    if (output != nullptr && output->obj != nullptr) {
+        return output->obj->GetScheduledStreamTime(desiredTimeScale, streamTime, playbackSpeed);
+    }
+
+    return S_FALSE;
+}
+
+HRESULT
+cdecklink_device_output_reference_status(cdecklink_device_output_t *output, BMDReferenceStatus *referenceStatus) {
+    if (output != nullptr && output->obj != nullptr) {
+        return output->obj->GetReferenceStatus(referenceStatus);
+    }
+
+    return S_FALSE;
+}
+
+/* Hardware Timing */
+
+HRESULT
+cdecklink_device_output_hardware_reference_clock(cdecklink_device_output_t *output, BMDTimeScale desiredTimeScale,
+                                                 BMDTimeValue *hardwareTime, BMDTimeValue *timeInFrame,
+                                                 BMDTimeValue *ticksPerFrame) {
+    if (output != nullptr && output->obj != nullptr) {
+        return output->obj->GetHardwareReferenceClock(desiredTimeScale, hardwareTime, timeInFrame, ticksPerFrame);
+    }
+
+    return S_FALSE;
+}
+
+HRESULT cdecklink_device_output_frame_completion_reference_timestamp(cdecklink_device_output_t *output,
+                                                                     cdecklink_video_frame_t *theFrame,
+                                                                     BMDTimeScale desiredTimeScale,
+                                                                     BMDTimeValue *frameCompletionTimestamp) {
+    if (output != nullptr && output->obj != nullptr) {
+        IDeckLinkVideoFrame *frame;
+        if (theFrame != nullptr) frame = theFrame->obj;
+
+        return output->obj->GetFrameCompletionReferenceTimestamp(frame, desiredTimeScale, frameCompletionTimestamp);
+    }
+
+    return S_FALSE;
+}

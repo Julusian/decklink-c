@@ -1,6 +1,15 @@
 #ifndef DECKLINK_C_COMMON_H
 #define DECKLINK_C_COMMON_H
 
+#include <stdbool.h>
+
+#ifndef BMDTimeValue
+typedef int64_t BMDTimeValue;
+#endif
+#ifndef BMDTimeScale
+typedef int64_t BMDTimeScale;
+#endif
+
 typedef int HRESULT;
 
 #define SUCCEEDED(Status) ((HRESULT)(Status) >= 0)
