@@ -17,11 +17,13 @@ int main() {
     free((void *) version);
 
     cdecklink_device_t *device = NULL;
+    int index = 0;
     while (cdecklink_next_device(iterator, &device) == S_OK) {
         const char *model_name = cdecklink_device_model_name(device);
         const char *display_name = cdecklink_device_display_name(device);
+        cdecklink_destroy_device(device);
 
-        printf("%s - %s\n", model_name, display_name);
+        printf("%d: %s - %s\n", index++, model_name, display_name);
 
         free((void *) model_name);
         free((void *) display_name);

@@ -4,6 +4,37 @@
 
 #include "include/display_mode.h"
 
+void cdecklink_destroy_display_mode_iterator(cdecklink_display_mode_iterator_t *it) {
+    if (it != nullptr && it->obj != nullptr) {
+        it->obj->Release();
+        free(it);
+    }
+}
+
+
+HRESULT cdecklink_next_display_mode(cdecklink_display_mode_iterator_t *it, cdecklink_display_mode_t **mode) {
+    if (it != nullptr && it->obj != nullptr) {
+        IDeckLinkDisplayMode *mode2 = nullptr;
+        auto result = it->obj->Next(&mode2);
+        if (result == S_OK) {
+            *mode = (cdecklink_display_mode_t *) malloc(sizeof(cdecklink_display_mode_t));
+            (*mode)->obj = mode2;
+        }
+
+        return result;
+    }
+
+    return S_FALSE;
+}
+
+void cdecklink_destroy_display_mode(cdecklink_display_mode_t *mode) {
+    if (mode != nullptr && mode->obj != nullptr) {
+        mode->obj->Release();
+        free(mode);
+    }
+}
+
+
 const char *cdecklink_display_mode_name(cdecklink_display_mode_t *mode) {
     if (mode != nullptr && mode->obj != nullptr) {
         String name;

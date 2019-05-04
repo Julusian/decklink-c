@@ -9,11 +9,13 @@ set(SOURCES
         include/device.h
         include/display_mode.h
         include/enums.h
+        include/frame.h
         include/iterator.h
 
         src/decklink_api.h
         src/device.cpp
         src/display_mode.cpp
+        src/frame.cpp
         src/iterator.cpp
         src/structs.h
 

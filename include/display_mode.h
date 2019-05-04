@@ -8,8 +8,17 @@
 extern "C" {
 #endif
 
+struct cdecklink_display_mode_iterator;
+typedef struct cdecklink_display_mode_iterator cdecklink_display_mode_iterator_t;
+
+void cdecklink_destroy_display_mode_iterator(cdecklink_display_mode_iterator_t *it);
+
 struct cdecklink_display_mode;
 typedef struct cdecklink_display_mode cdecklink_display_mode_t;
+
+HRESULT cdecklink_next_display_mode(cdecklink_display_mode_iterator_t *it, cdecklink_display_mode_t **mode);
+
+void cdecklink_destroy_display_mode(cdecklink_display_mode_t *mode);
 
 const char *cdecklink_display_mode_name(cdecklink_display_mode_t *mode);
 
