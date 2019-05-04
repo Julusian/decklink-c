@@ -72,7 +72,7 @@ void cdecklink_destroy_device_output(cdecklink_device_output_t *output) {
 }
 
 HRESULT
-cdecklink_device_output_does_support_display_mode(cdecklink_device_output_t *output, BMDDisplayMode displayMode,
+cdecklink_device_output_does_support_video_mode(cdecklink_device_output_t *output, BMDDisplayMode displayMode,
                                                   BMDPixelFormat pixelFormat,
                                                   BMDVideoOutputFlags flags,
                                                   BMDDisplayModeSupport *result,
