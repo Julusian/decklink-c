@@ -1,95 +1,47 @@
 #include <memory>
 
-#include "structs.h"
+#include "types.h"
 
 #include "include/display_mode.h"
 
-void cdecklink_destroy_display_mode_iterator(cdecklink_display_mode_iterator_t *it) {
-    if (it != nullptr && it->obj != nullptr) {
-        it->obj->Release();
-        free(it);
-    }
+void cdecklink_release_display_mode_iterator(cdecklink_display_mode_iterator_t *it) {
+    it->Release();
 }
 
 
 HRESULT cdecklink_next_display_mode(cdecklink_display_mode_iterator_t *it, cdecklink_display_mode_t **mode) {
-    if (it != nullptr && it->obj != nullptr) {
-        IDeckLinkDisplayMode *mode2 = nullptr;
-        auto result = it->obj->Next(&mode2);
-        if (result == S_OK) {
-            *mode = (cdecklink_display_mode_t *) malloc(sizeof(cdecklink_display_mode_t));
-            (*mode)->obj = mode2;
-        }
-
-        return result;
-    }
-
-    return S_FALSE;
+    return it->Next(mode);
 }
 
-void cdecklink_destroy_display_mode(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        mode->obj->Release();
-        free(mode);
-    }
+void cdecklink_release_display_mode(cdecklink_display_mode_t *mode) {
+    mode->Release();
 }
 
 
-const char *cdecklink_display_mode_name(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        String name;
-        if (mode->obj->GetName(&name) == S_OK) {
-            return name;
-        }
-    }
-
-    return nullptr;
+HRESULT cdecklink_display_mode_name(cdecklink_display_mode_t *mode, const char **name) {
+    return mode->GetName(name);
 }
 
 BMDDisplayMode cdecklink_display_mode_mode(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        return mode->obj->GetDisplayMode();
-    }
-
-    return 0;
+    return mode->GetDisplayMode();
 }
 
 long cdecklink_display_mode_width(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        return mode->obj->GetWidth();
-    }
-
-    return 0;
+    return mode->GetWidth();
 }
 
 long cdecklink_display_mode_height(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        return mode->obj->GetHeight();
-    }
-
-    return 0;
+    return mode->GetHeight();
 }
 
 HRESULT cdecklink_display_mode_framerate(cdecklink_display_mode_t *mode, int64_t *duration, int64_t *scale) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        return mode->obj->GetFrameRate(duration, scale);
-    }
-
-    return S_FALSE;
+    return mode->GetFrameRate(duration, scale);
 }
 
 BMDFieldDominance cdecklink_display_mode_field_dominance(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        return mode->obj->GetFieldDominance();
-    }
-
-    return 0;
+    return mode->GetFieldDominance();
 }
 
 BMDDisplayModeFlags cdecklink_display_mode_flags(cdecklink_display_mode_t *mode) {
-    if (mode != nullptr && mode->obj != nullptr) {
-        return mode->obj->GetFlags();
-    }
-
-    return 0;
+    return mode->GetFlags();
 }

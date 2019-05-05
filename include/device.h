@@ -11,23 +11,17 @@
 extern "C" {
 #endif
 
-struct cdecklink_device;
-typedef struct cdecklink_device cdecklink_device_t;
-
 HRESULT cdecklink_next_device(cdecklink_iterator_t *it, cdecklink_device_t **device);
 
-void cdecklink_destroy_device(cdecklink_device_t *device);
+void cdecklink_release_device(cdecklink_device_t *device);
 
-const char *cdecklink_device_model_name(cdecklink_device_t *device);
+HRESULT cdecklink_device_model_name(cdecklink_device_t *device, const char **name);
 
-const char *cdecklink_device_display_name(cdecklink_device_t *device);
+HRESULT cdecklink_device_display_name(cdecklink_device_t *device, const char **name);
 
-struct cdecklink_device_output;
-typedef struct cdecklink_device_output cdecklink_device_output_t;
+HRESULT cdecklink_device_output_cast(cdecklink_device_t *device, cdecklink_device_output_t **output);
 
-cdecklink_device_output_t *cdecklink_device_output_cast(cdecklink_device_t *device);
-
-void cdecklink_destroy_device_output(cdecklink_device_output_t *output);
+void cdecklink_release_device_output(cdecklink_device_output_t *output);
 
 HRESULT
 cdecklink_device_output_does_support_video_mode(cdecklink_device_output_t *output, BMDDisplayMode displayMode,

@@ -9,29 +9,35 @@ int main() {
     if (!iterator)
         goto CLEANUP;
 
-    const char *version = cdecklink_api_version(iterator);
-    if (!version)
+    const char *version;
+    if (FAILED(cdecklink_api_version(iterator, &version)))
         goto CLEANUP;
 
     printf("Driver version: %s\n\n", version);
-    free((void *) version);
+    cdecklink_free_string(version);
 
     cdecklink_device_t *device = NULL;
     int index = 0;
     while (cdecklink_next_device(iterator, &device) == S_OK) {
-        const char *model_name = cdecklink_device_model_name(device);
-        const char *display_name = cdecklink_device_display_name(device);
-        cdecklink_destroy_device(device);
+        const char *model_name;
+        const char *display_name;
+        if (FAILED(cdecklink_device_model_name(device, &model_name))) {
+            model_name = "Unknown";
+        }
+        if (FAILED(cdecklink_device_display_name(device, &display_name))) {
+            display_name = "Unknown";
+        }
+        cdecklink_release_device(device);
 
         printf("%d: %s - %s\n", index++, model_name, display_name);
 
-        free((void *) model_name);
-        free((void *) display_name);
+        cdecklink_free_string(model_name);
+        cdecklink_free_string(display_name);
     }
 
     CLEANUP:
     if (iterator)
-        cdecklink_destroy_iterator(iterator);
+        cdecklink_release_iterator(iterator);
 
     return 0;
 }

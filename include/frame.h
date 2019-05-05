@@ -3,15 +3,13 @@
 
 #include "common.h"
 #include "enums.h"
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct cdecklink_video_frame;
-typedef struct cdecklink_video_frame cdecklink_video_frame_t;
-
-void cdecklink_destroy_frame(cdecklink_video_frame_t *frame);
+void cdecklink_release_frame(cdecklink_video_frame_t *frame);
 
 long cdecklink_video_frame_width(cdecklink_video_frame_t *frame);
 
@@ -28,12 +26,11 @@ HRESULT cdecklink_video_frame_bytes(cdecklink_video_frame_t *frame, void **buffe
 //HRESULT cdecklink_video_frame_timecode(cdecklink_video_frame_t* frame, IDeckLinkTimecode **timecode);
 //HRESULT cdecklink_video_frame_ancillary_data(cdecklink_video_frame_t* frame, IDeckLinkVideoFrameAncillary **ancillary);
 
-struct cdecklink_mutable_video_frame;
-typedef struct cdecklink_mutable_video_frame cdecklink_mutable_video_frame_t;
+/* Mutable frame */
 
-cdecklink_video_frame_t *cdecklink_video_mutable_frame_base(cdecklink_mutable_video_frame_t *frame);
+cdecklink_video_frame_t *cdecklink_video_mutable_frame_get_frame(cdecklink_mutable_video_frame_t *frame);
 
-void cdecklink_destroy_mutable_frame(cdecklink_mutable_video_frame_t *frame);
+void cdecklink_release_mutable_frame(cdecklink_mutable_video_frame_t *frame);
 
 HRESULT cdecklink_video_mutable_frame_set_flags (cdecklink_mutable_video_frame_t *frame, BMDFrameFlags newFlags);
 

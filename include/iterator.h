@@ -2,21 +2,19 @@
 #define DECKLINK_C_ITERATOR_H
 
 #include "common.h"
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void cdecklink_free_string(const char* str);
-
-struct cdecklink_iterator;
-typedef struct cdecklink_iterator cdecklink_iterator_t;
+void cdecklink_free_string(const char *str);
 
 cdecklink_iterator_t *cdecklink_create_iterator();
 
-void cdecklink_destroy_iterator(cdecklink_iterator_t *it);
+void cdecklink_release_iterator(cdecklink_iterator_t *it);
 
-const char *cdecklink_api_version(cdecklink_iterator_t *it);
+HRESULT cdecklink_api_version(cdecklink_iterator_t *it, const char **version);
 
 #ifdef __cplusplus
 };

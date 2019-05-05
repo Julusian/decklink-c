@@ -11,6 +11,7 @@ set(SOURCES
         include/enums.h
         include/frame.h
         include/iterator.h
+        include/types.h
 
         src/decklink_api.h
         src/device.cpp
@@ -18,6 +19,7 @@ set(SOURCES
         src/frame.cpp
         src/iterator.cpp
         src/structs.h
+        src/types.h
 
         interop/Linux/include/DeckLinkAPI.h
         #        interop/Linux/include/DeckLinkAPI_v7_1.h

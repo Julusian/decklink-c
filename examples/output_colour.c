@@ -23,7 +23,7 @@ int main() {
             break;
         }
 
-        cdecklink_destroy_device(device);
+        cdecklink_release_device(device);
         device = NULL;
     }
 
@@ -56,10 +56,10 @@ int main() {
         const char *name = cdecklink_display_mode_name(mode);
         printf("%d: %s\n", mode_i++, name);
         free((void *) name);
-        cdecklink_destroy_display_mode(mode);
+        cdecklink_release_display_mode(mode);
         mode = NULL;
     }
-    cdecklink_destroy_display_mode_iterator(mode_iterator);
+    cdecklink_release_display_mode_iterator(mode_iterator);
     mode_iterator = NULL;
 
     index = 7;
@@ -76,7 +76,7 @@ int main() {
         if (++mode_i == index) {
             break;
         }
-        cdecklink_destroy_display_mode(mode);
+        cdecklink_release_display_mode(mode);
         mode = NULL;
     }
 
@@ -124,19 +124,19 @@ int main() {
     CLEANUP:
 
     if (mutable_frame)
-        cdecklink_destroy_mutable_frame(mutable_frame);
+        cdecklink_release_mutable_frame(mutable_frame);
 
     if (mode_iterator)
-        cdecklink_destroy_display_mode_iterator(mode_iterator);
+        cdecklink_release_display_mode_iterator(mode_iterator);
 
     if (output)
-        cdecklink_destroy_device_output(output);
+        cdecklink_release_device_output(output);
 
     if (device)
-        cdecklink_destroy_device(device);
+        cdecklink_release_device(device);
 
     if (iterator)
-        cdecklink_destroy_iterator(iterator);
+        cdecklink_release_iterator(iterator);
 
     return 0;
 }
