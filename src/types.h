@@ -17,4 +17,9 @@ typedef IDeckLinkVideoFrame cdecklink_video_frame_t;
 
 typedef IDeckLinkMutableVideoFrame cdecklink_mutable_video_frame_t;
 
+
+typedef IDeckLinkTimecode cdecklink_timecode_t;
+
+typedef IDeckLinkVideoFrameAncillary cdecklink_video_frame_ancillary_t;
+
 #endif //DECKLINK_C_TYPES_H

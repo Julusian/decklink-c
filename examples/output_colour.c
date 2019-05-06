@@ -32,12 +32,16 @@ int main() {
         goto CLEANUP;
     }
 
-    const char *display_name = cdecklink_device_display_name(device);
+    const char *display_name;
+    if (FAILED(cdecklink_device_display_name(device, &display_name))) {
+        printf("Failed to get device name\n");
+        goto CLEANUP;
+    }
     printf("Selected device: %s\n", display_name);
-    free((void *) display_name);
+    cdecklink_free_string(display_name);
 
-    cdecklink_device_output_t *output = cdecklink_device_output_cast(device);
-    if (output == NULL) {
+    cdecklink_device_output_t *output;
+    if (FAILED(cdecklink_device_output_cast(device, &output))) {
         printf("Device does not support output\n");
         goto CLEANUP;
     }
@@ -53,11 +57,15 @@ int main() {
     cdecklink_display_mode_t *mode;
     int mode_i = 0;
     while (cdecklink_next_display_mode(mode_iterator, &mode) == S_OK) {
-        const char *name = cdecklink_display_mode_name(mode);
-        printf("%d: %s\n", mode_i++, name);
-        free((void *) name);
-        cdecklink_release_display_mode(mode);
-        mode = NULL;
+        const char *name;
+        if (FAILED(cdecklink_display_mode_name(mode, &name))) {
+            // TODO
+        } else {
+            printf("%d: %s\n", mode_i++, name);
+            cdecklink_free_string(name);
+            cdecklink_release_display_mode(mode);
+            mode = NULL;
+        }
     }
     cdecklink_release_display_mode_iterator(mode_iterator);
     mode_iterator = NULL;
@@ -89,7 +97,7 @@ int main() {
         printf("Failed to create output frame\n");
         goto CLEANUP;
     }
-    cdecklink_video_frame_t *frame = cdecklink_video_mutable_frame_base(mutable_frame);
+    cdecklink_video_frame_t *frame = cdecklink_video_mutable_frame_get_frame(mutable_frame);
 
     // Fill the frame
     uint8_t *bytes;

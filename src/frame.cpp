@@ -32,6 +32,16 @@ HRESULT cdecklink_video_frame_bytes(cdecklink_video_frame_t *frame, void **buffe
     return frame->GetBytes(buffer);
 }
 
+HRESULT cdecklink_video_frame_timecode(cdecklink_video_frame_t *frame, BMDTimecodeFormat format,
+                                       cdecklink_timecode_t **timecode) {
+    return frame->GetTimecode(format, timecode);
+}
+
+HRESULT
+cdecklink_video_frame_ancillary_data(cdecklink_video_frame_t *frame, cdecklink_video_frame_ancillary_t **ancillary) {
+    return frame->GetAncillaryData(ancillary);
+}
+
 /* Mutable frame */
 
 cdecklink_video_frame_t *cdecklink_video_mutable_frame_get_frame(cdecklink_mutable_video_frame_t *frame) {

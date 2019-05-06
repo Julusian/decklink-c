@@ -18,7 +18,6 @@ set(SOURCES
         src/display_mode.cpp
         src/frame.cpp
         src/iterator.cpp
-        src/structs.h
         src/types.h
 
         interop/Linux/include/DeckLinkAPI.h

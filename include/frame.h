@@ -23,8 +23,11 @@ BMDFrameFlags cdecklink_video_frame_flags(cdecklink_video_frame_t *frame);
 
 HRESULT cdecklink_video_frame_bytes(cdecklink_video_frame_t *frame, void **buffer);
 
-//HRESULT cdecklink_video_frame_timecode(cdecklink_video_frame_t* frame, IDeckLinkTimecode **timecode);
-//HRESULT cdecklink_video_frame_ancillary_data(cdecklink_video_frame_t* frame, IDeckLinkVideoFrameAncillary **ancillary);
+HRESULT cdecklink_video_frame_timecode(cdecklink_video_frame_t *frame, BMDTimecodeFormat format,
+                                       cdecklink_timecode_t **timecode);
+
+HRESULT
+cdecklink_video_frame_ancillary_data(cdecklink_video_frame_t *frame, cdecklink_video_frame_ancillary_t **ancillary);
 
 /* Mutable frame */
 
@@ -32,7 +35,7 @@ cdecklink_video_frame_t *cdecklink_video_mutable_frame_get_frame(cdecklink_mutab
 
 void cdecklink_release_mutable_frame(cdecklink_mutable_video_frame_t *frame);
 
-HRESULT cdecklink_video_mutable_frame_set_flags (cdecklink_mutable_video_frame_t *frame, BMDFrameFlags newFlags);
+HRESULT cdecklink_video_mutable_frame_set_flags(cdecklink_mutable_video_frame_t *frame, BMDFrameFlags newFlags);
 
 //HRESULT SetTimecode (/* in */ BMDTimecodeFormat format, /* in */ IDeckLinkTimecode *timecode) = 0;
 //HRESULT SetTimecodeFromComponents (/* in */ BMDTimecodeFormat format, /* in */ uint8_t hours, /* in */ uint8_t minutes, /* in */ uint8_t seconds, /* in */ uint8_t frames, /* in */ BMDTimecodeFlags flags) = 0;

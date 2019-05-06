@@ -2,6 +2,7 @@
 #define DECKLINK_C_COMMON_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef BMDTimeValue
 typedef int64_t BMDTimeValue;
