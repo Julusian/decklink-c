@@ -82,7 +82,7 @@ cdecklink_device_output_schedule_video_frame(cdecklink_device_output_t *output, 
     return output->ScheduleVideoFrame(theFrame, displayTime, displayDuration, timeScale);
 }
 
-class DeckLinkVideoOutputCallback : public IDeckLinkVideoOutputCallback {
+class DeckLinkVideoOutputCallback final : public IDeckLinkVideoOutputCallback {
     std::atomic<int> ref_count_{0};
     void *context_;
     cdecklink_callback_schedule_frame_completed *completed_;
@@ -188,6 +188,56 @@ HRESULT cdecklink_device_output_buffered_audio_sample_frame_count(cdecklink_devi
 HRESULT cdecklink_device_output_flush_buffered_audio_samples(cdecklink_device_output_t *output) {
     return output->FlushBufferedAudioSamples();
 }
+
+class DeckLinkAudioOutputCallback final : public IDeckLinkAudioOutputCallback {
+    std::atomic<int> ref_count_{0};
+    void *context_;
+    cdecklink_callback_render_audio_samples *render_audio_samples_;
+
+public:
+    DeckLinkAudioOutputCallback(void *context,
+                                cdecklink_callback_render_audio_samples *render_audio_samples)
+            : context_(context),
+              render_audio_samples_(render_audio_samples) {
+    }
+
+    // IUnknown
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+
+    ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+
+    ULONG STDMETHODCALLTYPE Release() override {
+        if (--ref_count_ == 0) {
+            delete this;
+            return 0;
+        }
+
+        return ref_count_;
+    }
+
+    // IDeckLinkAudioOutputCallback
+
+    HRESULT RenderAudioSamples(/* in */ bool preroll) override {
+        if (render_audio_samples_ != nullptr) {
+            return render_audio_samples_(context_, preroll);
+        }
+
+        return S_FALSE;
+    }
+};
+
+HRESULT cdecklink_device_output_set_audio_callback(cdecklink_device_output_t *output,
+                                                   void *context,
+                                                   cdecklink_callback_render_audio_samples *render_audio_samples) {
+    DeckLinkAudioOutputCallback *handler = nullptr;
+    if (render_audio_samples != nullptr) {
+        // TODO - verify ref count
+        handler = new DeckLinkAudioOutputCallback(context, render_audio_samples);
+    }
+    return output->SetAudioCallback(handler);
+}
+
 
 //virtual HRESULT SetAudioCallback (/* in */ IDeckLinkAudioOutputCallback *theCallback) = 0;
 
@@ -309,7 +359,7 @@ HRESULT cdecklink_device_input_flush_streams(cdecklink_device_input_t *input) {
 }
 
 
-class DeckLinkInputCallback : public IDeckLinkInputCallback {
+class DeckLinkInputCallback final : public IDeckLinkInputCallback {
     std::atomic<int> ref_count_{0};
     void *context_;
     cdecklink_callback_input_format_changed *format_changed_;
@@ -380,4 +430,71 @@ HRESULT cdecklink_device_input_hardware_reference_clock(cdecklink_device_input_t
                                                         BMDTimeValue *hardwareTime, BMDTimeValue *timeInFrame,
                                                         BMDTimeValue *ticksPerFrame) {
     return input->GetHardwareReferenceClock(desiredTimeScale, hardwareTime, timeInFrame, ticksPerFrame);
+}
+
+/** Attributes **/
+
+HRESULT cdecklink_device_attributes_cast(cdecklink_device_t *device, cdecklink_device_attributes_t **attributes) {
+    // TODO - does this need an AddRef?
+    return device->QueryInterface(IID_IDeckLinkAttributes, reinterpret_cast<void **>(attributes));
+}
+
+void cdecklink_release_device_attributes(cdecklink_device_attributes_t *attributes) {
+    attributes->Release();
+}
+
+HRESULT
+cdecklink_device_attributes_flag(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID, bool *value) {
+    return attributes->GetFlag(cfgID, value);
+}
+
+HRESULT cdecklink_device_attributes_int(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID,
+                                        int64_t *value) {
+    return attributes->GetInt(cfgID, value);
+}
+
+HRESULT cdecklink_device_attributes_float(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID,
+                                          double *value) {
+    return attributes->GetFloat(cfgID, value);
+}
+
+HRESULT cdecklink_device_attributes_string(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID,
+                                           const char **value) {
+    return attributes->GetString(cfgID, value);
+}
+
+/** Status **/
+
+HRESULT cdecklink_device_status_cast(cdecklink_device_t *device, cdecklink_device_status_t **status) {
+    // TODO - does this need an AddRef?
+    return device->QueryInterface(IID_IDeckLinkStatus, reinterpret_cast<void **>(status));
+}
+
+void cdecklink_release_device_status(cdecklink_device_status_t *status) {
+    status->Release();
+}
+
+HRESULT
+cdecklink_device_status_flag(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID, bool *value) {
+    return status->GetFlag(cfgID, value);
+}
+
+HRESULT cdecklink_device_status_int(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                    int64_t *value) {
+    return status->GetInt(cfgID, value);
+}
+
+HRESULT cdecklink_device_status_float(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                      double *value) {
+    return status->GetFloat(cfgID, value);
+}
+
+HRESULT cdecklink_device_status_string(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                       const char **value) {
+    return status->GetString(cfgID, value);
+}
+
+HRESULT cdecklink_device_status_bytes(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                      void *buffer, /* in, out */ uint32_t *bufferSize) {
+    return status->GetBytes(cfgID, buffer, bufferSize);
 }

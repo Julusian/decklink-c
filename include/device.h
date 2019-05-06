@@ -100,7 +100,12 @@ HRESULT cdecklink_device_output_buffered_audio_sample_frame_count(cdecklink_devi
 
 HRESULT cdecklink_device_output_flush_buffered_audio_samples(cdecklink_device_output_t *output);
 
-//virtual HRESULT SetAudioCallback (/* in */ IDeckLinkAudioOutputCallback *theCallback) = 0;
+
+typedef HRESULT cdecklink_callback_render_audio_samples(void *context, bool preroll);
+
+HRESULT cdecklink_device_output_set_audio_callback(cdecklink_device_output_t *output,
+                                                   void *context,
+                                                   cdecklink_callback_render_audio_samples *format_changed);
 
 /* Output Control */
 
@@ -202,6 +207,44 @@ HRESULT cdecklink_device_input_hardware_reference_clock(cdecklink_device_input_t
                                                         BMDTimeValue *hardwareTime, BMDTimeValue *timeInFrame,
                                                         BMDTimeValue *ticksPerFrame);
 
+/** Attributes **/
+
+HRESULT cdecklink_device_attributes_cast(cdecklink_device_t *device, cdecklink_device_attributes_t **attributes);
+
+void cdecklink_release_device_attributes(cdecklink_device_attributes_t *attributes);
+
+HRESULT
+cdecklink_device_attributes_flag(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID, bool *value);
+
+HRESULT cdecklink_device_attributes_int(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID,
+                                        int64_t *value);
+
+HRESULT cdecklink_device_attributes_float(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID,
+                                          double *value);
+
+HRESULT cdecklink_device_attributes_string(cdecklink_device_attributes_t *attributes, BMDDeckLinkAttributeID cfgID,
+                                           const char **value);
+
+/** Status **/
+
+HRESULT cdecklink_device_status_cast(cdecklink_device_t *device, cdecklink_device_status_t **status);
+
+void cdecklink_release_device_status(cdecklink_device_status_t *status);
+
+HRESULT
+cdecklink_device_status_flag(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID, bool *value);
+
+HRESULT cdecklink_device_status_int(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                    int64_t *value);
+
+HRESULT cdecklink_device_status_float(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                      double *value);
+
+HRESULT cdecklink_device_status_string(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                       const char **value);
+
+HRESULT cdecklink_device_status_bytes(cdecklink_device_status_t *status, BMDDeckLinkAttributeID cfgID,
+                                      void *buffer, /* in, out */ uint32_t *bufferSize);
 
 #ifdef __cplusplus
 };

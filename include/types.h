@@ -13,6 +13,10 @@ typedef void cdecklink_device_output_t;
 
 typedef void cdecklink_device_input_t;
 
+typedef void cdecklink_device_attributes_t;
+
+typedef void cdecklink_device_status_t;
+
 typedef void cdecklink_video_frame_t;
 
 typedef void cdecklink_mutable_video_frame_t;
@@ -24,5 +28,7 @@ typedef void cdecklink_audio_input_packet_t;
 typedef void cdecklink_timecode_t;
 
 typedef void cdecklink_video_frame_ancillary_t;
+
+typedef void cdecklink_video_conversion_t;
 
 #endif //DECKLINK_C_TYPES_H

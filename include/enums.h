@@ -3,6 +3,61 @@
 
 #include <stdint.h>
 
+#ifndef BMD_DECKLINKAPITYPES_H
+
+// Type Declarations
+
+typedef int64_t BMDTimeValue;
+typedef int64_t BMDTimeScale;
+typedef uint32_t BMDTimecodeBCD;
+typedef uint32_t BMDTimecodeUserBits;
+
+/* Enum BMDTimecodeFlags - Timecode fl
+ * ags */
+
+typedef uint32_t BMDTimecodeFlags;
+enum _BMDTimecodeFlags {
+    bmdTimecodeFlagDefault                                       = 0,
+    bmdTimecodeIsDropFrame                                       = 1 << 0,
+    bmdTimecodeFieldMark                                         = 1 << 1,
+    bmdTimecodeColorFrame                                        = 1 << 2
+};
+
+/* Enum BMDVideoConnection - Video connection types */
+
+typedef uint32_t BMDVideoConnection;
+enum _BMDVideoConnection {
+    bmdVideoConnectionSDI                                        = 1 << 0,
+    bmdVideoConnectionHDMI                                       = 1 << 1,
+    bmdVideoConnectionOpticalSDI                                 = 1 << 2,
+    bmdVideoConnectionComponent                                  = 1 << 3,
+    bmdVideoConnectionComposite                                  = 1 << 4,
+    bmdVideoConnectionSVideo                                     = 1 << 5
+};
+
+/* Enum BMDAudioConnection - Audio connection types */
+
+typedef uint32_t BMDAudioConnection;
+enum _BMDAudioConnection {
+    bmdAudioConnectionEmbedded                                   = 1 << 0,
+    bmdAudioConnectionAESEBU                                     = 1 << 1,
+    bmdAudioConnectionAnalog                                     = 1 << 2,
+    bmdAudioConnectionAnalogXLR                                  = 1 << 3,
+    bmdAudioConnectionAnalogRCA                                  = 1 << 4,
+    bmdAudioConnectionMicrophone                                 = 1 << 5,
+    bmdAudioConnectionHeadphones                                 = 1 << 6
+};
+
+/* Enum BMDDeckControlConnection - Deck control connections */
+
+typedef uint32_t BMDDeckControlConnection;
+enum _BMDDeckControlConnection {
+    bmdDeckControlConnectionRS422Remote1                         = 1 << 0,
+    bmdDeckControlConnectionRS422Remote2                         = 1 << 1
+};
+
+#endif //BMD_DECKLINKAPITYPES_H
+
 #ifndef BMD_DECKLINKAPIMODES_H
 
 /* Enum BMDDisplayMode - Video display modes */

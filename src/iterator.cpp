@@ -17,7 +17,9 @@ void cdecklink_release_iterator(cdecklink_iterator_t *it) {
 }
 
 HRESULT cdecklink_api_version(cdecklink_iterator_t *it, const char **version) {
-    auto info = iface_cast_raw<IDeckLinkAPIInformation>(it);
+    IDeckLinkAPIInformation *info;
+    it->QueryInterface(IID_IDeckLinkAPIInformation, reinterpret_cast<void **>(&info));
+
     if (info) {
         return info->GetString(BMDDeckLinkAPIVersion, version);
     }

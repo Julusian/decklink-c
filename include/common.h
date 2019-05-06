@@ -4,12 +4,18 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifndef BMDTimeValue
-typedef int64_t BMDTimeValue;
-#endif
-#ifndef BMDTimeScale
-typedef int64_t BMDTimeScale;
-#endif
+//#ifndef BMDTimeValue
+//typedef int64_t BMDTimeValue;
+//#endif
+//#ifndef BMDTimeScale
+//typedef int64_t BMDTimeScale;
+//#endif
+//#ifndef BMDTimecodeBCD
+//typedef uint32_t BMDTimecodeBCD;
+//#endif
+//#ifndef BMDTimecodeUserBits
+//typedef uint32_t BMDTimecodeUserBits;
+//#endif
 
 typedef int HRESULT;
 

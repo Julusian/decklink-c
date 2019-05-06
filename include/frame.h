@@ -62,6 +62,23 @@ BMDPixelFormat cdecklink_video_frame_ancillary_pixel_format(cdecklink_video_fram
 
 BMDDisplayMode cdecklink_video_frame_ancillary_display_mode(cdecklink_video_frame_ancillary_t *ancillary);
 
+/** Timecode **/
+
+// TODO - release
+// TODO - addref?
+
+BMDTimecodeBCD cdecklink_timecode_bcd(cdecklink_timecode_t *timecode);
+
+HRESULT
+cdecklink_timecode_components(cdecklink_timecode_t *timecode, uint8_t *hours, uint8_t *minutes, uint8_t *seconds,
+                              uint8_t *frames);
+
+HRESULT cdecklink_timecode_string(cdecklink_timecode_t *timecode, const char **string);
+
+BMDTimecodeFlags cdecklink_timecode_flags(cdecklink_timecode_t *timecode);
+
+HRESULT cdecklink_timecode_user_bits(cdecklink_timecode_t *timecode, BMDTimecodeUserBits *userBits);
+
 #ifdef __cplusplus
 };
 #endif
