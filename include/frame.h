@@ -29,7 +29,7 @@ HRESULT cdecklink_video_frame_timecode(cdecklink_video_frame_t *frame, BMDTimeco
 HRESULT
 cdecklink_video_frame_ancillary_data(cdecklink_video_frame_t *frame, cdecklink_video_frame_ancillary_t **ancillary);
 
-/* Mutable frame */
+/** Mutable frame **/
 
 cdecklink_video_frame_t *cdecklink_video_mutable_frame_get_frame(cdecklink_mutable_video_frame_t *frame);
 
@@ -41,6 +41,26 @@ HRESULT cdecklink_video_mutable_frame_set_flags(cdecklink_mutable_video_frame_t 
 //HRESULT SetTimecodeFromComponents (/* in */ BMDTimecodeFormat format, /* in */ uint8_t hours, /* in */ uint8_t minutes, /* in */ uint8_t seconds, /* in */ uint8_t frames, /* in */ BMDTimecodeFlags flags) = 0;
 //HRESULT SetAncillaryData (/* in */ IDeckLinkVideoFrameAncillary *ancillary) = 0;
 //HRESULT SetTimecodeUserBits (/* in */ BMDTimecodeFormat format, /* in */ BMDTimecodeUserBits userBits) = 0;
+
+/** Input frame **/
+
+cdecklink_video_frame_t *cdecklink_video_input_frame_get_frame(cdecklink_video_input_frame_t *frame);
+
+HRESULT cdecklink_video_input_frame_stream_time(cdecklink_video_input_frame_t *frame, BMDTimeValue *frameTime,
+                                                BMDTimeValue *frameDuration, BMDTimeScale timeScale);
+
+HRESULT
+cdecklink_video_input_frame_hardware_reference_timestamp(cdecklink_video_input_frame_t *frame, BMDTimeScale timeScale,
+                                                         BMDTimeValue *frameTime, BMDTimeValue *frameDuration);
+
+/** Ancillary data **/
+
+HRESULT cdecklink_video_frame_ancillary_buffer_for_vertical_blanking_line(cdecklink_video_frame_ancillary_t *ancillary,
+                                                                          uint32_t lineNumber, void **buffer);
+
+BMDPixelFormat cdecklink_video_frame_ancillary_pixel_format(cdecklink_video_frame_ancillary_t *ancillary);
+
+BMDDisplayMode cdecklink_video_frame_ancillary_display_mode(cdecklink_video_frame_ancillary_t *ancillary);
 
 #ifdef __cplusplus
 };

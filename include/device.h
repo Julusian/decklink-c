@@ -19,6 +19,8 @@ HRESULT cdecklink_device_model_name(cdecklink_device_t *device, const char **nam
 
 HRESULT cdecklink_device_display_name(cdecklink_device_t *device, const char **name);
 
+/** Output **/
+
 HRESULT cdecklink_device_output_cast(cdecklink_device_t *device, cdecklink_device_output_t **output);
 
 void cdecklink_release_device_output(cdecklink_device_output_t *output);
@@ -50,7 +52,8 @@ cdecklink_device_output_create_video_frame(cdecklink_device_output_t *output, in
                                            int32_t rowBytes, BMDPixelFormat pixelFormat,
                                            BMDFrameFlags flags, cdecklink_mutable_video_frame_t **outFrame);
 
-//virtual HRESULT CreateAncillaryData (/* in */ BMDPixelFormat pixelFormat, /* out */ IDeckLinkVideoFrameAncillary **outBuffer) = 0;
+HRESULT cdecklink_device_output_create_ancillary_data(cdecklink_device_output_t *output, BMDPixelFormat pixelFormat,
+                                                      cdecklink_video_frame_ancillary_t **outBuffer);
 
 HRESULT
 cdecklink_device_output_display_video_frame_sync(cdecklink_device_output_t *output, cdecklink_video_frame_t *frame);
@@ -128,6 +131,77 @@ HRESULT cdecklink_device_output_frame_completion_reference_timestamp(cdecklink_d
                                                                      cdecklink_video_frame_t *theFrame,
                                                                      BMDTimeScale desiredTimeScale,
                                                                      BMDTimeValue *frameCompletionTimestamp);
+
+/** Input **/
+
+HRESULT cdecklink_device_input_cast(cdecklink_device_t *device, cdecklink_device_input_t **input);
+
+void cdecklink_release_device_input(cdecklink_device_input_t *input);
+
+HRESULT
+cdecklink_device_input_does_support_video_mode(cdecklink_device_input_t *input, BMDDisplayMode displayMode,
+                                               BMDPixelFormat pixelFormat,
+                                               BMDVideoOutputFlags flags,
+                                               BMDDisplayModeSupport *result,
+                                               cdecklink_display_mode_t **resultDisplayMode);
+
+HRESULT cdecklink_device_input_display_mode_iterator(cdecklink_device_input_t *input,
+                                                     cdecklink_display_mode_iterator_t **iterator);
+
+// virtual HRESULT SetScreenPreviewCallback (/* in */ IDeckLinkScreenPreviewCallback *previewCallback) = 0;
+
+/* Video Input */
+
+HRESULT cdecklink_device_input_enable_video_input(cdecklink_device_input_t *input, BMDDisplayMode displayMode,
+                                                  BMDPixelFormat pixelFormat, BMDVideoInputFlags flags);
+
+HRESULT cdecklink_device_input_disable_video_input(cdecklink_device_input_t *input);
+
+HRESULT
+cdecklink_device_input_available_video_frame_vount(cdecklink_device_input_t *input, uint32_t *availableFrameCount);
+
+//HRESULT SetVideoInputFrameMemoryAllocator (IDeckLinkMemoryAllocator *theAllocator);
+
+/* Audio Input */
+
+HRESULT cdecklink_device_input_enable_audio_input(cdecklink_device_input_t *input, BMDAudioSampleRate sampleRate,
+                                                  BMDAudioSampleType sampleType, uint32_t channelCount);
+
+HRESULT cdecklink_device_input_disable_audio_input(cdecklink_device_input_t *input);
+
+HRESULT cdecklink_device_input_available_audio_sample_frame_count(cdecklink_device_input_t *input,
+                                                                  uint32_t *availableSampleFrameCount);
+
+/* Input Control */
+
+HRESULT cdecklink_device_input_start_streams(cdecklink_device_input_t *input);
+
+HRESULT cdecklink_device_input_stop_streams(cdecklink_device_input_t *input);
+
+HRESULT cdecklink_device_input_pause_streams(cdecklink_device_input_t *input);
+
+HRESULT cdecklink_device_input_flush_streams(cdecklink_device_input_t *input);
+
+
+typedef HRESULT cdecklink_callback_input_format_changed(void *context,
+                                                        BMDVideoInputFormatChangedEvents notificationEvents,
+                                                        cdecklink_display_mode_t *newDisplayMode,
+                                                        BMDDetectedVideoInputFormatFlags detectedSignalFlags);
+
+typedef HRESULT cdecklink_callback_input_frame_arrived(void *context, cdecklink_video_input_frame_t *videoFrame,
+                                                       cdecklink_audio_input_packet_t *audioPacket);
+
+HRESULT cdecklink_device_input_set_callback(cdecklink_device_input_t *input,
+                                            void *context,
+                                            cdecklink_callback_input_format_changed *format_changed,
+                                            cdecklink_callback_input_frame_arrived *frame_arrived);
+
+/* Hardware Timing */
+
+HRESULT cdecklink_device_input_hardware_reference_clock(cdecklink_device_input_t *input, BMDTimeScale desiredTimeScale,
+                                                        BMDTimeValue *hardwareTime, BMDTimeValue *timeInFrame,
+                                                        BMDTimeValue *ticksPerFrame);
+
 
 #ifdef __cplusplus
 };

@@ -21,6 +21,8 @@ HRESULT cdecklink_device_display_name(cdecklink_device_t *device, const char **n
     return device->GetDisplayName(name);
 }
 
+/** Output **/
+
 HRESULT cdecklink_device_output_cast(cdecklink_device_t *device, cdecklink_device_output_t **output) {
     // TODO - does this need an AddRef?
     return device->QueryInterface(IID_IDeckLinkOutput, reinterpret_cast<void **>(output));
@@ -60,6 +62,12 @@ HRESULT cdecklink_device_output_create_video_frame(cdecklink_device_output_t *ou
                                                    int32_t rowBytes, BMDPixelFormat pixelFormat, BMDFrameFlags flags,
                                                    cdecklink_mutable_video_frame_t **outFrame) {
     return output->CreateVideoFrame(width, height, rowBytes, pixelFormat, flags, outFrame);
+}
+
+
+HRESULT cdecklink_device_output_create_ancillary_data(cdecklink_device_output_t *output, BMDPixelFormat pixelFormat,
+                                                      cdecklink_video_frame_ancillary_t **outBuffer) {
+    return output->CreateAncillaryData(pixelFormat, outBuffer);
 }
 
 HRESULT
@@ -128,7 +136,11 @@ HRESULT cdecklink_device_output_set_scheduled_frame_completion_callback(cdecklin
                                                                         void *context,
                                                                         cdecklink_callback_schedule_frame_completed *completed,
                                                                         cdecklink_callback_playback_stopped *playback_stopped) {
-    auto handler = new DeckLinkVideoOutputCallback(context, completed, playback_stopped);
+    DeckLinkVideoOutputCallback *handler = nullptr;
+    if (completed != nullptr || playback_stopped != nullptr) {
+        // TODO - verify ref count
+        handler = new DeckLinkVideoOutputCallback(context, completed, playback_stopped);
+    }
     return output->SetScheduledFrameCompletionCallback(handler);
 }
 
@@ -221,4 +233,151 @@ HRESULT cdecklink_device_output_frame_completion_reference_timestamp(cdecklink_d
                                                                      BMDTimeScale desiredTimeScale,
                                                                      BMDTimeValue *frameCompletionTimestamp) {
     return output->GetFrameCompletionReferenceTimestamp(theFrame, desiredTimeScale, frameCompletionTimestamp);
+}
+
+/** Input **/
+
+HRESULT cdecklink_device_input_cast(cdecklink_device_t *device, cdecklink_device_input_t **input) {
+    // TODO - does this need an AddRef?
+    return device->QueryInterface(IID_IDeckLinkInput, reinterpret_cast<void **>(input));
+}
+
+void cdecklink_release_device_input(cdecklink_device_input_t *input) {
+    input->Release();
+}
+
+HRESULT
+cdecklink_device_input_does_support_video_mode(cdecklink_device_input_t *input, BMDDisplayMode displayMode,
+                                               BMDPixelFormat pixelFormat,
+                                               BMDVideoOutputFlags flags,
+                                               BMDDisplayModeSupport *result,
+                                               cdecklink_display_mode_t **resultDisplayMode) {
+    return input->DoesSupportVideoMode(displayMode, pixelFormat, flags, result, resultDisplayMode);
+}
+
+HRESULT cdecklink_device_input_display_mode_iterator(cdecklink_device_input_t *input,
+                                                     cdecklink_display_mode_iterator_t **iterator) {
+    return input->GetDisplayModeIterator(iterator);
+}
+
+HRESULT cdecklink_device_input_enable_video_input(cdecklink_device_input_t *input, BMDDisplayMode displayMode,
+                                                  BMDPixelFormat pixelFormat, BMDVideoInputFlags flags) {
+    return input->EnableVideoInput(displayMode, pixelFormat, flags);
+}
+
+HRESULT cdecklink_device_input_disable_video_input(cdecklink_device_input_t *input) {
+    return input->DisableVideoInput();
+}
+
+HRESULT
+cdecklink_device_input_available_video_frame_vount(cdecklink_device_input_t *input, uint32_t *availableFrameCount) {
+    return input->GetAvailableVideoFrameCount(availableFrameCount);
+}
+
+/* Audio Input */
+
+HRESULT cdecklink_device_input_enable_audio_input(cdecklink_device_input_t *input, BMDAudioSampleRate sampleRate,
+                                                  BMDAudioSampleType sampleType, uint32_t channelCount) {
+    return input->EnableAudioInput(sampleRate, sampleType, channelCount);
+}
+
+HRESULT cdecklink_device_input_disable_audio_input(cdecklink_device_input_t *input) {
+    return input->DisableAudioInput();
+}
+
+HRESULT cdecklink_device_input_available_audio_sample_frame_count(cdecklink_device_input_t *input,
+                                                                  uint32_t *availableSampleFrameCount) {
+    return input->GetAvailableAudioSampleFrameCount(availableSampleFrameCount);
+}
+
+/* Input Control */
+
+HRESULT cdecklink_device_input_start_streams(cdecklink_device_input_t *input) {
+    return input->StartStreams();
+}
+
+HRESULT cdecklink_device_input_stop_streams(cdecklink_device_input_t *input) {
+    return input->StopStreams();
+}
+
+HRESULT cdecklink_device_input_pause_streams(cdecklink_device_input_t *input) {
+    return input->PauseStreams();
+}
+
+HRESULT cdecklink_device_input_flush_streams(cdecklink_device_input_t *input) {
+    return input->FlushStreams();
+}
+
+
+class DeckLinkInputCallback : public IDeckLinkInputCallback {
+    std::atomic<int> ref_count_{0};
+    void *context_;
+    cdecklink_callback_input_format_changed *format_changed_;
+    cdecklink_callback_input_frame_arrived *frame_arrived_;
+
+public:
+    DeckLinkInputCallback(void *context,
+                          cdecklink_callback_input_format_changed *format_changed,
+                          cdecklink_callback_input_frame_arrived *frame_arrived)
+            : context_(context),
+              format_changed_(format_changed),
+              frame_arrived_(frame_arrived) {
+    }
+
+    // IUnknown
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+
+    ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+
+    ULONG STDMETHODCALLTYPE Release() override {
+        if (--ref_count_ == 0) {
+            delete this;
+            return 0;
+        }
+
+        return ref_count_;
+    }
+
+    // IDeckLinkInputCallback
+
+    HRESULT VideoInputFormatChanged(/* in */ BMDVideoInputFormatChangedEvents notificationEvents, /* in */
+                                             IDeckLinkDisplayMode *newDisplayMode, /* in */
+                                             BMDDetectedVideoInputFormatFlags detectedSignalFlags) override {
+        if (format_changed_ != nullptr) {
+            return format_changed_(context_, notificationEvents, newDisplayMode, detectedSignalFlags);
+        }
+
+        return S_FALSE;
+    }
+
+    HRESULT VideoInputFrameArrived(/* in */ IDeckLinkVideoInputFrame *videoFrame, /* in */
+                                            IDeckLinkAudioInputPacket *audioPacket) override {
+        if (frame_arrived_ != nullptr) {
+            return frame_arrived_(context_, videoFrame, audioPacket);
+        }
+
+        return S_FALSE;
+    }
+};
+
+
+HRESULT cdecklink_device_input_set_callback(cdecklink_device_input_t *input,
+                                            void *context,
+                                            cdecklink_callback_input_format_changed *format_changed,
+                                            cdecklink_callback_input_frame_arrived *frame_arrived) {
+    DeckLinkInputCallback *handler = nullptr;
+    if (format_changed != nullptr || frame_arrived != nullptr) {
+        // TODO - verify ref count
+        handler = new DeckLinkInputCallback(context, format_changed, frame_arrived);
+    }
+    return input->SetCallback(handler);
+}
+
+/* Hardware Timing */
+
+HRESULT cdecklink_device_input_hardware_reference_clock(cdecklink_device_input_t *input, BMDTimeScale desiredTimeScale,
+                                                        BMDTimeValue *hardwareTime, BMDTimeValue *timeInFrame,
+                                                        BMDTimeValue *ticksPerFrame) {
+    return input->GetHardwareReferenceClock(desiredTimeScale, hardwareTime, timeInFrame, ticksPerFrame);
 }

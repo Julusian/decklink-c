@@ -13,10 +13,15 @@ typedef IDeckLink cdecklink_device_t;
 
 typedef IDeckLinkOutput cdecklink_device_output_t;
 
+typedef IDeckLinkInput cdecklink_device_input_t;
+
 typedef IDeckLinkVideoFrame cdecklink_video_frame_t;
 
 typedef IDeckLinkMutableVideoFrame cdecklink_mutable_video_frame_t;
 
+typedef IDeckLinkVideoInputFrame cdecklink_video_input_frame_t;
+
+typedef IDeckLinkAudioInputPacket cdecklink_audio_input_packet_t;
 
 typedef IDeckLinkTimecode cdecklink_timecode_t;
 

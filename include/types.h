@@ -11,10 +11,15 @@ typedef void cdecklink_device_t;
 
 typedef void cdecklink_device_output_t;
 
+typedef void cdecklink_device_input_t;
+
 typedef void cdecklink_video_frame_t;
 
 typedef void cdecklink_mutable_video_frame_t;
 
+typedef void cdecklink_video_input_frame_t;
+
+typedef void cdecklink_audio_input_packet_t;
 
 typedef void cdecklink_timecode_t;
 
