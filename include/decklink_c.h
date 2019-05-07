@@ -3,12 +3,11 @@
 
 #include "common.h"
 #include "types.h"
+#include "util.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void cdecklink_free_string(const char *str);
 
 typedef int64_t DecklinkTimeValue;
 typedef int64_t DecklinkTimeScale;

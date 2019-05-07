@@ -1,4 +1,3 @@
-#ifndef DECKLINK_C_TYPES_H
 #define DECKLINK_C_TYPES_H
 
 #include "../interop/Linux/include/DeckLinkAPI.h"
@@ -42,5 +41,3 @@ typedef IDeckLinkKeyer cdecklink_keyer_t;
 typedef IDeckLinkVideoConversion cdecklink_video_conversion_t;
 typedef IDeckLinkDeviceNotificationCallback cdecklink_device_notification_callback_t;
 typedef IDeckLinkDiscovery cdecklink_discovery_t;
-
-#endif //DECKLINK_C_TYPES_H

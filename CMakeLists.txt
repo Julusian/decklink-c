@@ -6,9 +6,11 @@ set(CMAKE_CXX_STANDARD 14)
 set(SOURCES
         include/decklink_c.h
         include/types.h
+        include/util.h
 
         src/decklink_c.cpp
         src/types.h
+        src/util.cpp
 
         interop/Linux/include/DeckLinkAPI.h
         #        interop/Linux/include/DeckLinkAPI_v7_1.h

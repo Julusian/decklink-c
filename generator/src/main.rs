@@ -24,7 +24,7 @@ fn generate_types_files(
     write_byte(file_c, b"#ifndef DECKLINK_C_TYPES_H\n");
     write_byte(file_c, b"#define DECKLINK_C_TYPES_H\n\n");
 
-    write_byte(file_cpp, b"#ifndef DECKLINK_C_TYPES_H\n");
+//    write_byte(file_cpp, b"#ifndef DECKLINK_C_TYPES_H\n");
     write_byte(file_cpp, b"#define DECKLINK_C_TYPES_H\n\n");
     write_byte(
         file_cpp,
@@ -41,7 +41,7 @@ fn generate_types_files(
     for cl in class_names {
         let name = cl.get_name().unwrap();
         if name.starts_with("IDeckLink") {
-            if let Some(prefix) = convert_class_prefix(&name) {
+            if let Some(prefix) = generate_class_prefix(&name) {
                 let struct_name = format!("{}_t", prefix);
 
                 write_str(file_c, format!("typedef void {};\n", struct_name));
@@ -52,10 +52,10 @@ fn generate_types_files(
     }
 
     write_byte(file_c, b"\n#endif //DECKLINK_C_TYPES_H\n");
-    write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
+//    write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
 }
 
-fn convert_class_prefix(name: &str) -> Option<String> {
+fn generate_class_prefix(name: &str) -> Option<String> {
     if name.starts_with("IDeckLink") {
         let mut name2 = name.to_string();
         name2.replace_range(Range { start: 0, end: 9 }, "");
@@ -104,9 +104,9 @@ fn main() {
 
     file.write(b"#include \"common.h\"\n").unwrap();
     file.write(b"#include \"types.h\"\n").unwrap();
+    file.write(b"#include \"util.h\"\n").unwrap();
     file.write(b"\n").unwrap();
 
-    file_c.write(b"#include <memory>\n").unwrap();
     file_c.write(b"#include \"types.h\"\n").unwrap();
     file_c
         .write(b"#include \"../include/decklink_c.h\"\n")
@@ -114,12 +114,6 @@ fn main() {
     file_c.write(b"\n").unwrap();
 
     file.write(b"#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
-        .unwrap();
-
-    file.write(b"void cdecklink_free_string(const char *str);\n\n")
-        .unwrap();
-    file_c
-        .write(b"void cdecklink_free_string(const char *str) {\n\tfree((void *) str);\n}\n\n")
         .unwrap();
 
     let mut type_alias = HashMap::new();
@@ -214,7 +208,7 @@ fn main() {
 
         let name = cl.get_name().unwrap();
         if name.starts_with("IDeckLink") {
-            if let Some(prefix) = convert_class_prefix(&name) {
+            if let Some(prefix) = generate_class_prefix(&name) {
                 let struct_name = format!("{}_t", prefix);
 
                 //            file.write(format!("typedef void {};\n", struct_name).as_bytes()).unwrap();

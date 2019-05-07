@@ -1,10 +1,5 @@
-#include <memory>
 #include "types.h"
 #include "../include/decklink_c.h"
-
-void cdecklink_free_string(const char *str) {
-	free((void *) str);
-}
 
 unsigned long cdecklink_timecode_add_ref(cdecklink_timecode_t *obj) {
 	return obj->AddRef();
