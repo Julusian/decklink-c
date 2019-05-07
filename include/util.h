@@ -10,6 +10,8 @@ extern "C" {
 
 void cdecklink_free_string(const char *str);
 
+HRESULT cdecklink_api_version(cdecklink_iterator_t* it, const char** str);
+
 #ifdef __cplusplus
 };
 #endif

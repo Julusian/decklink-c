@@ -886,6 +886,7 @@ HRESULT cdecklink_video_frame_get_bytes(cdecklink_video_frame_t *obj, void ** bu
 HRESULT cdecklink_video_frame_get_timecode(cdecklink_video_frame_t *obj, DecklinkTimecodeFormat format, cdecklink_timecode_t ** timecode);
 HRESULT cdecklink_video_frame_get_ancillary_data(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_t ** ancillary);
 
+cdecklink_video_frame_t *cdecklink_mutable_video_frame_to_video_frame(cdecklink_mutable_video_frame_t *obj);
 unsigned long cdecklink_mutable_video_frame_add_ref(cdecklink_mutable_video_frame_t *obj);
 unsigned long cdecklink_mutable_video_frame_release(cdecklink_mutable_video_frame_t *obj);
 HRESULT cdecklink_mutable_video_frame_set_flags(cdecklink_mutable_video_frame_t *obj, DecklinkFrameFlags newFlags);
@@ -906,6 +907,7 @@ HRESULT cdecklink_video_frame_metadata_extensions_get_float(cdecklink_video_fram
 HRESULT cdecklink_video_frame_metadata_extensions_get_flag(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, bool * value);
 HRESULT cdecklink_video_frame_metadata_extensions_get_string(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char ** value);
 
+cdecklink_video_frame_t *cdecklink_video_input_frame_to_video_frame(cdecklink_video_input_frame_t *obj);
 unsigned long cdecklink_video_input_frame_add_ref(cdecklink_video_input_frame_t *obj);
 unsigned long cdecklink_video_input_frame_release(cdecklink_video_input_frame_t *obj);
 HRESULT cdecklink_video_input_frame_get_stream_time(cdecklink_video_input_frame_t *obj, DecklinkTimeValue * frameTime, DecklinkTimeValue * frameDuration, DecklinkTimeScale timeScale);
@@ -924,16 +926,19 @@ long cdecklink_encoder_packet_get_size(cdecklink_encoder_packet_t *obj);
 HRESULT cdecklink_encoder_packet_get_stream_time(cdecklink_encoder_packet_t *obj, DecklinkTimeValue * frameTime, DecklinkTimeScale timeScale);
 DecklinkPacketType cdecklink_encoder_packet_get_packet_type(cdecklink_encoder_packet_t *obj);
 
+cdecklink_encoder_packet_t *cdecklink_encoder_video_packet_to_encoder_packet(cdecklink_encoder_video_packet_t *obj);
 unsigned long cdecklink_encoder_video_packet_add_ref(cdecklink_encoder_video_packet_t *obj);
 unsigned long cdecklink_encoder_video_packet_release(cdecklink_encoder_video_packet_t *obj);
 DecklinkPixelFormat cdecklink_encoder_video_packet_get_pixel_format(cdecklink_encoder_video_packet_t *obj);
 HRESULT cdecklink_encoder_video_packet_get_hardware_reference_timestamp(cdecklink_encoder_video_packet_t *obj, DecklinkTimeScale timeScale, DecklinkTimeValue * frameTime, DecklinkTimeValue * frameDuration);
 HRESULT cdecklink_encoder_video_packet_get_timecode(cdecklink_encoder_video_packet_t *obj, DecklinkTimecodeFormat format, cdecklink_timecode_t ** timecode);
 
+cdecklink_encoder_packet_t *cdecklink_encoder_audio_packet_to_encoder_packet(cdecklink_encoder_audio_packet_t *obj);
 unsigned long cdecklink_encoder_audio_packet_add_ref(cdecklink_encoder_audio_packet_t *obj);
 unsigned long cdecklink_encoder_audio_packet_release(cdecklink_encoder_audio_packet_t *obj);
 DecklinkAudioFormat cdecklink_encoder_audio_packet_get_audio_format(cdecklink_encoder_audio_packet_t *obj);
 
+cdecklink_encoder_video_packet_t *cdecklink_h265nal_packet_to_encoder_video_packet(cdecklink_h265nal_packet_t *obj);
 unsigned long cdecklink_h265nal_packet_add_ref(cdecklink_h265nal_packet_t *obj);
 unsigned long cdecklink_h265nal_packet_release(cdecklink_h265nal_packet_t *obj);
 HRESULT cdecklink_h265nal_packet_get_unit_type(cdecklink_h265nal_packet_t *obj, uint8_t * unitType);
@@ -1008,6 +1013,11 @@ cdecklink_discovery_t * cdecklink_create_decklink_discovery_instance();
 cdecklink_api_information_t * cdecklink_create_decklink_api_information_instance();
 cdecklink_gl_screen_preview_helper_t * cdecklink_create_open_gl_screen_preview_helper();
 cdecklink_video_conversion_t * cdecklink_create_video_conversion_instance();
+HRESULT cdecklink_device_query_output(cdecklink_device_t *obj, cdecklink_output_t **dst);
+HRESULT cdecklink_device_query_input(cdecklink_device_t *obj, cdecklink_input_t **dst);
+HRESULT cdecklink_device_query_encoder_input(cdecklink_device_t *obj, cdecklink_encoder_input_t **dst);
+HRESULT cdecklink_video_frame_query_video_frame_ancillary(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_t **dst);
+HRESULT cdecklink_encoder_video_packet_query_h265nal_packet(cdecklink_encoder_video_packet_t *obj, cdecklink_h265nal_packet_t **dst);
 #ifdef __cplusplus
 };
 #endif

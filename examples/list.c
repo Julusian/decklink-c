@@ -9,12 +9,12 @@ int main() {
     if (!iterator)
         goto CLEANUP;
 
-//    const char *version;
-//    if (FAILED(cdecklink_api_version(iterator, &version)))
-//        goto CLEANUP;
-//
-//    printf("Driver version: %s\n\n", version);
-//    cdecklink_free_string(version);
+    const char *version;
+    if (FAILED(cdecklink_api_version(iterator, &version)))
+        goto CLEANUP;
+
+    printf("Driver version: %s\n\n", version);
+    cdecklink_free_string(version);
 
     cdecklink_device_t *device = NULL;
     int index = 0;

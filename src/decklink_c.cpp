@@ -788,6 +788,10 @@ HRESULT cdecklink_video_frame_get_ancillary_data(cdecklink_video_frame_t *obj, c
 }
 
 
+cdecklink_video_frame_t *cdecklink_mutable_video_frame_to_video_frame(cdecklink_mutable_video_frame_t *obj) {
+	return obj;
+}
+
 unsigned long cdecklink_mutable_video_frame_add_ref(cdecklink_mutable_video_frame_t *obj) {
 	return obj->AddRef();
 }
@@ -859,6 +863,10 @@ HRESULT cdecklink_video_frame_metadata_extensions_get_string(cdecklink_video_fra
 }
 
 
+cdecklink_video_frame_t *cdecklink_video_input_frame_to_video_frame(cdecklink_video_input_frame_t *obj) {
+	return obj;
+}
+
 unsigned long cdecklink_video_input_frame_add_ref(cdecklink_video_input_frame_t *obj) {
 	return obj->AddRef();
 }
@@ -922,6 +930,10 @@ DecklinkPacketType cdecklink_encoder_packet_get_packet_type(cdecklink_encoder_pa
 }
 
 
+cdecklink_encoder_packet_t *cdecklink_encoder_video_packet_to_encoder_packet(cdecklink_encoder_video_packet_t *obj) {
+	return obj;
+}
+
 unsigned long cdecklink_encoder_video_packet_add_ref(cdecklink_encoder_video_packet_t *obj) {
 	return obj->AddRef();
 }
@@ -943,6 +955,10 @@ HRESULT cdecklink_encoder_video_packet_get_timecode(cdecklink_encoder_video_pack
 }
 
 
+cdecklink_encoder_packet_t *cdecklink_encoder_audio_packet_to_encoder_packet(cdecklink_encoder_audio_packet_t *obj) {
+	return obj;
+}
+
 unsigned long cdecklink_encoder_audio_packet_add_ref(cdecklink_encoder_audio_packet_t *obj) {
 	return obj->AddRef();
 }
@@ -955,6 +971,10 @@ DecklinkAudioFormat cdecklink_encoder_audio_packet_get_audio_format(cdecklink_en
 	return obj->GetAudioFormat();
 }
 
+
+cdecklink_encoder_video_packet_t *cdecklink_h265nal_packet_to_encoder_video_packet(cdecklink_h265nal_packet_t *obj) {
+	return obj;
+}
 
 unsigned long cdecklink_h265nal_packet_add_ref(cdecklink_h265nal_packet_t *obj) {
 	return obj->AddRef();
@@ -1214,5 +1234,25 @@ cdecklink_gl_screen_preview_helper_t * cdecklink_create_open_gl_screen_preview_h
 
 cdecklink_video_conversion_t * cdecklink_create_video_conversion_instance() {
 	return CreateVideoConversionInstance();
+}
+
+HRESULT cdecklink_device_query_output(cdecklink_device_t *obj, cdecklink_output_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkOutput, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_device_query_input(cdecklink_device_t *obj, cdecklink_input_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkInput, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_device_query_encoder_input(cdecklink_device_t *obj, cdecklink_encoder_input_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkEncoderInput, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_video_frame_query_video_frame_ancillary(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkVideoFrameAncillary, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_encoder_video_packet_query_h265nal_packet(cdecklink_encoder_video_packet_t *obj, cdecklink_h265nal_packet_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkH265NALPacket, reinterpret_cast<void**>(dst));
 }
 

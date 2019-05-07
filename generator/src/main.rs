@@ -1,7 +1,9 @@
 extern crate clang;
 extern crate heck;
+extern crate regex;
 
 use heck::SnakeCase;
+use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{LineWriter, Write};
@@ -24,7 +26,7 @@ fn generate_types_files(
     write_byte(file_c, b"#ifndef DECKLINK_C_TYPES_H\n");
     write_byte(file_c, b"#define DECKLINK_C_TYPES_H\n\n");
 
-//    write_byte(file_cpp, b"#ifndef DECKLINK_C_TYPES_H\n");
+    //    write_byte(file_cpp, b"#ifndef DECKLINK_C_TYPES_H\n");
     write_byte(file_cpp, b"#define DECKLINK_C_TYPES_H\n\n");
     write_byte(
         file_cpp,
@@ -52,7 +54,7 @@ fn generate_types_files(
     }
 
     write_byte(file_c, b"\n#endif //DECKLINK_C_TYPES_H\n");
-//    write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
+    //    write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
 }
 
 fn generate_class_prefix(name: &str) -> Option<String> {
@@ -71,6 +73,19 @@ fn generate_class_prefix(name: &str) -> Option<String> {
     }
 }
 
+fn trim_struct_name(name: &str) -> String {
+    let mut trimmed = name.to_string();
+    trimmed.replace_range(Range { start: 0, end: 10 }, "");
+    trimmed.replace_range(
+        Range {
+            start: trimmed.len() - 2,
+            end: trimmed.len(),
+        },
+        "",
+    );
+    trimmed
+}
+
 fn main() {
     // Acquire an instance of `Clang`
     let clang = clang::Clang::new().unwrap();
@@ -81,7 +96,7 @@ fn main() {
     // Parse a source file into a translation unit
     let tu: clang::TranslationUnit = index
         .parser("../interop/Linux/include/DeckLinkAPI.h")
-        .arguments(&["-x", "c++"])
+        .arguments(&["-x", "c++", "-fparse-all-comments"])
         .parse()
         .unwrap();
 
@@ -214,6 +229,33 @@ fn main() {
                 //            file.write(format!("typedef void {};\n", struct_name).as_bytes()).unwrap();
                 println!("{}", struct_name);
 
+                let bases = cl
+                    .get_children()
+                    .into_iter()
+                    .filter(|c| c.get_kind() == clang::EntityKind::BaseSpecifier)
+                    .collect::<Vec<clang::Entity>>();
+                if let Some(base) = bases.first() {
+                    let base_type = base.get_type().unwrap();
+                    //                    if base_type.get_display_name() == "IUnknown" {
+                    //                        println!("IUn");
+                    //                    }
+                    if let Some(alias) = type_alias.get(&base_type.get_display_name()) {
+                        let trimmed = trim_struct_name(alias);
+                        println!(" base = {} ({})", alias, trimmed);
+
+                        // Cast to Base Class
+                        let func_str =
+                            format!("{} *{}_to_{}({} *obj)", alias, prefix, trimmed, struct_name);
+                        file.write(format!("{};\n", func_str).as_bytes()).unwrap();
+
+                        file_c
+                            .write(format!("{} {{\n", func_str).as_bytes())
+                            .unwrap();
+                        file_c.write(b"\treturn obj;\n").unwrap();
+                        file_c.write(b"}\n\n").unwrap();
+                    }
+                }
+
                 // Release and AddRef
                 {
                     let func_str =
@@ -240,12 +282,14 @@ fn main() {
 
                 // Methods
                 for func in cl.get_children() {
+                    //                    println!("    child: {:?} (kind: {:?})", func.get_name().unwrap_or("?".to_string()), func.get_kind());
+
                     if func.get_kind() != clang::EntityKind::Method {
                         continue;
                     }
 
                     let name = func.get_name().unwrap();
-                    println!("    field: {:?} (offset: {} bits)", name, 0);
+                    //                    println!("    field: {:?} (offset: {} bits)", name, 0);
 
                     let mut args = Vec::new();
                     args.push(format!("{} *obj", struct_name));
@@ -258,7 +302,7 @@ fn main() {
                             name = name.replace(&basic_name, a);
                         }
 
-                        println!("       arg: {} {}", name, a.get_display_name().unwrap());
+                        //                        println!("       arg: {} {}", name, a.get_display_name().unwrap());
                         args.push(format!("{} {}", name, a.get_display_name().unwrap()));
                         arg_names.push(a.get_display_name().unwrap());
                     }
@@ -330,6 +374,40 @@ fn main() {
                     .write(format!("\treturn {}();\n", n).as_bytes())
                     .unwrap();
                 file_c.write(b"}\n\n").unwrap();
+            }
+        }
+    }
+
+    // Parse the QueryInterface conversions stated in comments
+    let re = Regex::new(r"IDeckLink(\w+) (.*) QueryInterface(.*) IDeck(\w+)").unwrap();
+    let src_tokens = tu.get_entity().get_range().unwrap().tokenize();
+    for token in src_tokens {
+        if token.get_kind() == clang::token::TokenKind::Comment {
+            let raw_str = token.get_spelling();
+            for cap in re.captures_iter(&raw_str) {
+                let src_name = format!("IDeck{}", &cap[4]);
+                let dst_name = format!("IDeckLink{}", &cap[1]);
+                //                println!("IDeckLink{} from IDeck{}", &cap[1], &cap[4]);
+
+                if let Some(new_src_name) = type_alias.get(&src_name) {
+                    if let Some(new_dst_name) = type_alias.get(&dst_name) {
+                        let trimmed_src = trim_struct_name(new_src_name);
+                        let trimmed_dst = trim_struct_name(new_dst_name);
+
+                        // Cast to Base Class
+                        let func_str = format!(
+                            "HRESULT cdecklink_{}_query_{}({} *obj, {} **dst)",
+                            trimmed_src, trimmed_dst, new_src_name, new_dst_name
+                        );
+                        file.write(format!("{};\n", func_str).as_bytes()).unwrap();
+
+                        file_c
+                            .write(format!("{} {{\n", func_str).as_bytes())
+                            .unwrap();
+                        file_c.write(format!("\treturn obj->QueryInterface(IID_{}, reinterpret_cast<void**>(dst));\n", dst_name).as_bytes()).unwrap();
+                        file_c.write(b"}\n\n").unwrap();
+                    }
+                }
             }
         }
     }
