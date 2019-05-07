@@ -15,15 +15,6 @@ fn write_byte(writer: &mut LineWriter<File>, b: &[u8]) {
     writer.write(b).unwrap();
 }
 
-struct MainWrapper {
-    header: LineWriter<File>,
-    cpp: LineWriter<File>,
-
-    types_c: LineWriter<File>,
-    types_cpp: LineWriter<File>,
-}
-impl MainWrapper {}
-
 fn generate_types_files(
     tu: &clang::TranslationUnit,
     type_map: &mut HashMap<String, String>,
@@ -68,6 +59,10 @@ fn convert_class_prefix(name: &str) -> Option<String> {
     if name.starts_with("IDeckLink") {
         let mut name2 = name.to_string();
         name2.replace_range(Range { start: 0, end: 9 }, "");
+        if name2.len() == 0 {
+            name2 = "device".to_string();
+        }
+
         let prefix = format!("cdecklink_{}", name2.to_snake_case());
 
         Some(prefix)
@@ -85,40 +80,47 @@ fn main() {
 
     // Parse a source file into a translation unit
     let tu: clang::TranslationUnit = index
-        .parser("src/test.h")
+        .parser("../interop/Linux/include/DeckLinkAPI.h")
         .arguments(&["-x", "c++"])
         .parse()
         .unwrap();
 
     println!("starting");
 
-    let file = File::create("blah.h").unwrap();
+    let file = File::create("../include/decklink_c.h").unwrap();
     let mut file = LineWriter::new(file);
 
-    let file_c = File::create("blah.cpp").unwrap();
+    let file_c = File::create("../src/decklink_c.cpp").unwrap();
     let mut file_c = LineWriter::new(file_c);
 
-    let file_types_c = File::create("types_c.h").unwrap();
+    let file_types_c = File::create("../include/types.h").unwrap();
     let mut file_types_c = LineWriter::new(file_types_c);
 
-    let file_types_cpp = File::create("types_cpp.h").unwrap();
+    let file_types_cpp = File::create("../src/types.h").unwrap();
     let mut file_types_cpp = LineWriter::new(file_types_cpp);
 
     write_byte(&mut file, b"#ifndef DECKLINK_C_API_H\n");
     write_byte(&mut file, b"#define DECKLINK_C_API_H\n\n");
 
-    file.write(b"#include <stdbool.h>\n").unwrap();
-    file.write(b"#include <stdint.h>\n").unwrap();
+    file.write(b"#include \"common.h\"\n").unwrap();
+    file.write(b"#include \"types.h\"\n").unwrap();
     file.write(b"\n").unwrap();
 
-    file.write(b"typedef int HRESULT;\n").unwrap();
-    file.write(b"\n").unwrap();
-    file.write(b"#include \"types_c.h\"\n").unwrap();
-    file.write(b"\n").unwrap();
-
-    file_c.write(b"#include \"types_cpp.h\"\n").unwrap();
-    file_c.write(b"#include \"blah.h\"\n").unwrap();
+    file_c.write(b"#include <memory>\n").unwrap();
+    file_c.write(b"#include \"types.h\"\n").unwrap();
+    file_c
+        .write(b"#include \"../include/decklink_c.h\"\n")
+        .unwrap();
     file_c.write(b"\n").unwrap();
+
+    file.write(b"#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
+        .unwrap();
+
+    file.write(b"void cdecklink_free_string(const char *str);\n\n")
+        .unwrap();
+    file_c
+        .write(b"void cdecklink_free_string(const char *str) {\n\tfree((void *) str);\n}\n\n")
+        .unwrap();
 
     let mut type_alias = HashMap::new();
 
@@ -337,6 +339,8 @@ fn main() {
             }
         }
     }
+
+    file.write(b"#ifdef __cplusplus\n};\n#endif\n\n").unwrap();
 
     write_byte(&mut file, b"\n#endif //DECKLINK_C_API_H\n");
 }

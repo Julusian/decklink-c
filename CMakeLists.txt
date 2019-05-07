@@ -4,21 +4,10 @@ project(decklink_c)
 set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCES
-        include/common.h
         include/decklink_c.h
-        include/device.h
-        include/display_mode.h
-        include/enums.h
-        include/frame.h
-        include/frame_conversion.h
-        include/iterator.h
         include/types.h
 
-        src/device.cpp
-        src/display_mode.cpp
-        src/frame.cpp
-        src/frame_conversion.cpp
-        src/iterator.cpp
+        src/decklink_c.cpp
         src/types.h
 
         interop/Linux/include/DeckLinkAPI.h
