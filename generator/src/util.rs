@@ -5,11 +5,11 @@ use std::io::{LineWriter, Write};
 use std::ops::Range;
 
 pub fn write_str(writer: &mut LineWriter<File>, s: String) {
-    writer.write(s.as_bytes()).unwrap();
+    writer.write_all(s.as_bytes()).unwrap();
 }
 
 pub fn write_byte(writer: &mut LineWriter<File>, b: &[u8]) {
-    writer.write(b).unwrap();
+    writer.write_all(b).unwrap();
 }
 
 pub struct Context {
@@ -34,12 +34,11 @@ impl Context {
                 args.push("void *ctx".to_string());
                 arg_names.push("ctx".to_string());
 
-                let mut i = 0;
-                for j in k {
+                for (i, j) in k.iter().enumerate() {
                     args.push(format!("{}* cb{}", j, i));
                     arg_names.push(format!("cb{}", i));
-                    i += 1;
                 }
+
                 callback_type = Some(a.get_type().unwrap().get_display_name());
             } else {
                 let type_name = self.convert_type(&a.get_type().unwrap());
@@ -77,7 +76,7 @@ pub fn generate_class_prefix(name: &str) -> Option<String> {
     if name.starts_with("IDeckLink") {
         let mut name2 = name.to_string();
         name2.replace_range(Range { start: 0, end: 9 }, "");
-        if name2.len() == 0 {
+        if name2.is_empty() {
             name2 = "device".to_string();
         }
 

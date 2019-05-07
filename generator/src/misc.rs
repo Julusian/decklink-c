@@ -25,7 +25,7 @@ pub fn generate_types_files(
         .get_entity()
         .get_children()
         .into_iter()
-        .filter(|e| e.get_kind() == clang::EntityKind::ClassDecl && e.get_children().len() == 0)
+        .filter(|e| e.get_kind() == clang::EntityKind::ClassDecl && e.get_children().is_empty())
         .collect::<Vec<clang::Entity>>();
 
     for cl in class_names {
