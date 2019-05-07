@@ -86,6 +86,63 @@ fn trim_struct_name(name: &str) -> String {
     trimmed
 }
 
+fn parse_args(
+    type_alias: &HashMap<String, String>,
+    callback_params: &HashMap<String, Vec<String>>,
+    func: &clang::Entity,
+    struct_name: &str,
+) -> (Vec<String>, Vec<String>, Option<String>) {
+    let mut args = Vec::new();
+    args.push(format!("{} *obj", struct_name));
+    let mut arg_names = Vec::new();
+
+    let mut callback_type = None;
+
+    for a in func.get_arguments().unwrap() {
+        println!("{}", a.get_type().unwrap().get_display_name());
+        if let Some(k) = convert_name2(&callback_params, &a.get_type().unwrap().get_display_name())
+        {
+            args.push("void *ctx".to_string());
+            arg_names.push("ctx".to_string());
+
+            let mut i = 0;
+            for j in k {
+                args.push(format!("{}* cb{}", j, i));
+                arg_names.push(format!("cb{}", i));
+                i += 1;
+            }
+            callback_type = Some(a.get_type().unwrap().get_display_name());
+        } else {
+            let type_name = convert_type(type_alias, &a.get_type().unwrap());
+
+            args.push(format!("{} {}", type_name, a.get_display_name().unwrap()));
+            arg_names.push(a.get_display_name().unwrap());
+        }
+    }
+
+    (args, arg_names, callback_type)
+}
+
+fn convert_name2<'a, T>(type_alias: &'a HashMap<String, T>, name1: &str) -> Option<&'a T> {
+    let basic_name = name1.to_string().replace(|a| !char::is_alphanumeric(a), "");
+    type_alias.get(&basic_name)
+}
+
+fn convert_name(type_alias: &HashMap<String, String>, name1: &str) -> Option<String> {
+    let name = name1.to_string();
+    let basic_name = name.replace(|a| !char::is_alphanumeric(a), "");
+    if let Some(a) = type_alias.get(&basic_name) {
+        Some(name.replace(&basic_name, a))
+    } else {
+        None
+    }
+}
+
+fn convert_type(type_alias: &HashMap<String, String>, type_: &clang::Type) -> String {
+    let name = type_.get_display_name();
+    convert_name(type_alias, &name).unwrap_or(name)
+}
+
 fn main() {
     // Acquire an instance of `Clang`
     let clang = clang::Clang::new().unwrap();
@@ -122,6 +179,7 @@ fn main() {
     file.write(b"#include \"util.h\"\n").unwrap();
     file.write(b"\n").unwrap();
 
+    file_c.write(b"#include <atomic>\n").unwrap();
     file_c.write(b"#include \"types.h\"\n").unwrap();
     file_c
         .write(b"#include \"../include/decklink_c.h\"\n")
@@ -132,6 +190,7 @@ fn main() {
         .unwrap();
 
     let mut type_alias = HashMap::new();
+    let mut callback_params = HashMap::new();
 
     generate_types_files(&tu, &mut type_alias, &mut file_types_c, &mut file_types_cpp);
 
@@ -218,8 +277,7 @@ fn main() {
 
     for cl in classes {
         let type_ = cl.get_type().unwrap();
-        let size = type_.get_sizeof().unwrap();
-        println!("class: {:?} (size: {} bytes)", cl.get_name().unwrap(), size);
+        //        println!("class: {:?}", cl.get_name().unwrap());
 
         let name = cl.get_name().unwrap();
         if name.starts_with("IDeckLink") {
@@ -227,116 +285,299 @@ fn main() {
                 let struct_name = format!("{}_t", prefix);
 
                 //            file.write(format!("typedef void {};\n", struct_name).as_bytes()).unwrap();
-                println!("{}", struct_name);
+                //                println!("{}", struct_name);
 
-                let bases = cl
-                    .get_children()
-                    .into_iter()
-                    .filter(|c| c.get_kind() == clang::EntityKind::BaseSpecifier)
-                    .collect::<Vec<clang::Entity>>();
-                if let Some(base) = bases.first() {
-                    let base_type = base.get_type().unwrap();
-                    //                    if base_type.get_display_name() == "IUnknown" {
-                    //                        println!("IUn");
-                    //                    }
-                    if let Some(alias) = type_alias.get(&base_type.get_display_name()) {
-                        let trimmed = trim_struct_name(alias);
-                        println!(" base = {} ({})", alias, trimmed);
+                if name.contains("Callback") {
+                    println!("class: {:?}", cl.get_name().unwrap());
 
-                        // Cast to Base Class
+                    //callback types
+
+                    let mut callbacks = Vec::new();
+
+                    for func in cl.get_children() {
+                        //                    println!("    child: {:?} (kind: {:?})", func.get_name().unwrap_or("?".to_string()), func.get_kind());
+
+                        if func.get_kind() != clang::EntityKind::Method {
+                            continue;
+                        }
+
+                        let name = func.get_name().unwrap();
+
+                        let (args, _, _) = parse_args(&type_alias, &callback_params, &func, "void");
+                        let ret_name = convert_type(&type_alias, &func.get_result_type().unwrap());
+
+                        let func_str = format!(
+                            "{} {}_{}({})",
+                            ret_name,
+                            prefix,
+                            name.to_snake_case(),
+                            args.join(", ")
+                        );
+                        //                        println!("callback: {}", func_str);
+                        file.write(format!("typedef {};\n", func_str).as_bytes())
+                            .unwrap();
+
+                        callbacks.push(format!("{}_{}", prefix, name.to_snake_case()));
+                    }
+
+                    callback_params.insert(name.clone(), callbacks.clone());
+
+                    let mut class_name = name.clone();
+                    class_name = class_name.replace(|a| !char::is_alphanumeric(a), "");
+                    let mut class_name2 = class_name.to_string();
+                    class_name2.replace_range(Range { start: 0, end: 1 }, ""); // Trim I
+
+                    file_c
+                        .write(
+                            format!("class {} final : public {} {{\n", class_name2, class_name)
+                                .as_bytes(),
+                        )
+                        .unwrap();
+                    file_c
+                        .write(b"\tstd::atomic<int> ref_count_{0};\n")
+                        .unwrap();
+                    file_c.write(b"\tvoid *ctx_;\n").unwrap();
+
+                    let mut cb_names = Vec::new();
+                    let mut cb_names_and_types = Vec::new();
+                    for i in 0..callbacks.len() {
+                        let cb = &callbacks[i];
+
+                        cb_names.push(format!("cb{}", i));
+                        cb_names_and_types.push(format!("{} *cb{}", cb, i));
+                        file_c
+                            .write(format!("\t{} *cb{}_;\n", cb, i).as_bytes())
+                            .unwrap();
+                    }
+
+                    file_c.write(b"\npublic:\n").unwrap();
+
+                    file_c
+                        .write(
+                            format!(
+                                "\t{} (void *ctx, {})\n",
+                                class_name2,
+                                cb_names_and_types.join(", ")
+                            )
+                            .as_bytes(),
+                        )
+                        .unwrap();
+
+                    let setters = cb_names
+                        .iter()
+                        .map(|a| format!("{}_({})", a, a))
+                        .collect::<Vec<String>>();
+                    file_c
+                        .write(format!("\t: ctx_(ctx), {} {{}}\n", setters.join(", ")).as_bytes())
+                        .unwrap();
+
+                    file_c.write(b"\n").unwrap();
+
+                    file_c.write(b"\tHRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }\n").unwrap();
+                    file_c.write(b"\tULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }\n").unwrap();
+                    file_c.write(b"\tULONG STDMETHODCALLTYPE Release() override {\n\t\tif (--ref_count_ == 0) {\n\t\t\tdelete this;\n\t\t\treturn 0;\n\t\t}\n\t\treturn ref_count_;\n\t}\n").unwrap();
+                    file_c.write(b"\n").unwrap();
+
+                    let children = cl
+                        .get_children()
+                        .into_iter()
+                        .filter(|c| c.get_kind() == clang::EntityKind::Method)
+                        .collect::<Vec<clang::Entity>>();
+                    for i in 0..children.len() {
+                        let ch = &children[i];
+
+                        let (mut args, mut arg_names, _) =
+                            parse_args(&HashMap::new(), &HashMap::new(), &ch, "void");
+                        let ret_name = convert_type(&type_alias, &ch.get_result_type().unwrap());
+
+                        args.remove(0); // Drop ctx_ from the start
+
+                        file_c
+                            .write(
+                                format!(
+                                    "\t{} {}({}) override {{\n",
+                                    ret_name,
+                                    ch.get_name().unwrap(),
+                                    args.join(", ")
+                                )
+                                .as_bytes(),
+                            )
+                            .unwrap();
+                        file_c
+                            .write(format!("\t\tif (cb{}_ != nullptr) {{\n", i).as_bytes())
+                            .unwrap();
+
+                        arg_names.insert(0, "ctx_".to_string());
+
+                        file_c
+                            .write(
+                                format!("\t\t\treturn cb{}_({});\n", i, arg_names.join(", "))
+                                    .as_bytes(),
+                            )
+                            .unwrap();
+
+                        file_c.write(b"\t\t}\n").unwrap();
+                        file_c.write(b"\t\treturn S_FALSE;\n").unwrap();
+
+                        file_c.write(b"\t}\n\n").unwrap();
+                    }
+
+                    file_c.write(b"};\n\n").unwrap();
+
+                    file.write(b"\n").unwrap();
+                } else {
+                    let bases = cl
+                        .get_children()
+                        .into_iter()
+                        .filter(|c| c.get_kind() == clang::EntityKind::BaseSpecifier)
+                        .collect::<Vec<clang::Entity>>();
+                    if let Some(base) = bases.first() {
+                        let base_type = base.get_type().unwrap();
+                        //                    if base_type.get_display_name() == "IUnknown" {
+                        //                        println!("IUn");
+                        //                    }
+                        if let Some(alias) = type_alias.get(&base_type.get_display_name()) {
+                            let trimmed = trim_struct_name(alias);
+                            //                            println!(" base = {} ({})", alias, trimmed);
+
+                            // Cast to Base Class
+                            let func_str = format!(
+                                "{} *{}_to_{}({} *obj)",
+                                alias, prefix, trimmed, struct_name
+                            );
+                            file.write(format!("{};\n", func_str).as_bytes()).unwrap();
+
+                            file_c
+                                .write(format!("{} {{\n", func_str).as_bytes())
+                                .unwrap();
+                            file_c.write(b"\treturn obj;\n").unwrap();
+                            file_c.write(b"}\n\n").unwrap();
+                        }
+                    }
+
+                    // Release and AddRef
+                    {
                         let func_str =
-                            format!("{} *{}_to_{}({} *obj)", alias, prefix, trimmed, struct_name);
+                            format!("unsigned long {}_add_ref({} *obj)", prefix, struct_name);
                         file.write(format!("{};\n", func_str).as_bytes()).unwrap();
 
                         file_c
                             .write(format!("{} {{\n", func_str).as_bytes())
                             .unwrap();
-                        file_c.write(b"\treturn obj;\n").unwrap();
+                        file_c.write(b"\treturn obj->AddRef();\n").unwrap();
                         file_c.write(b"}\n\n").unwrap();
                     }
-                }
+                    {
+                        let func_str =
+                            format!("unsigned long {}_release({} *obj)", prefix, struct_name);
+                        file.write(format!("{};\n", func_str).as_bytes()).unwrap();
 
-                // Release and AddRef
-                {
-                    let func_str =
-                        format!("unsigned long {}_add_ref({} *obj)", prefix, struct_name);
-                    file.write(format!("{};\n", func_str).as_bytes()).unwrap();
-
-                    file_c
-                        .write(format!("{} {{\n", func_str).as_bytes())
-                        .unwrap();
-                    file_c.write(b"\treturn obj->AddRef();\n").unwrap();
-                    file_c.write(b"}\n\n").unwrap();
-                }
-                {
-                    let func_str =
-                        format!("unsigned long {}_release({} *obj)", prefix, struct_name);
-                    file.write(format!("{};\n", func_str).as_bytes()).unwrap();
-
-                    file_c
-                        .write(format!("{} {{\n", func_str).as_bytes())
-                        .unwrap();
-                    file_c.write(b"\treturn obj->Release();\n").unwrap();
-                    file_c.write(b"}\n\n").unwrap();
-                }
-
-                // Methods
-                for func in cl.get_children() {
-                    //                    println!("    child: {:?} (kind: {:?})", func.get_name().unwrap_or("?".to_string()), func.get_kind());
-
-                    if func.get_kind() != clang::EntityKind::Method {
-                        continue;
+                        file_c
+                            .write(format!("{} {{\n", func_str).as_bytes())
+                            .unwrap();
+                        file_c.write(b"\treturn obj->Release();\n").unwrap();
+                        file_c.write(b"}\n\n").unwrap();
                     }
 
-                    let name = func.get_name().unwrap();
-                    //                    println!("    field: {:?} (offset: {} bits)", name, 0);
+                    // Methods
+                    for func in cl.get_children() {
+                        //                    println!("    child: {:?} (kind: {:?})", func.get_name().unwrap_or("?".to_string()), func.get_kind());
 
-                    let mut args = Vec::new();
-                    args.push(format!("{} *obj", struct_name));
-                    let mut arg_names = Vec::new();
-
-                    for a in func.get_arguments().unwrap() {
-                        let mut name = a.get_type().unwrap().get_display_name();
-                        let basic_name = name.replace(|a| !char::is_alphanumeric(a), "");
-                        if let Some(a) = type_alias.get(&basic_name) {
-                            name = name.replace(&basic_name, a);
+                        if func.get_kind() != clang::EntityKind::Method {
+                            continue;
                         }
 
-                        //                        println!("       arg: {} {}", name, a.get_display_name().unwrap());
-                        args.push(format!("{} {}", name, a.get_display_name().unwrap()));
-                        arg_names.push(a.get_display_name().unwrap());
+                        let name = func.get_name().unwrap();
+                        //                    println!("    field: {:?} (offset: {} bits)", name, 0);
+
+                        let (args, arg_names, callback_type) =
+                            parse_args(&type_alias, &callback_params, &func, &struct_name);
+                        let ret_name = convert_type(&type_alias, &func.get_result_type().unwrap());
+
+                        let func_str = format!(
+                            "{} {}_{}({})",
+                            ret_name,
+                            prefix,
+                            name.to_snake_case(),
+                            args.join(", ")
+                        );
+                        file.write(format!("{};\n", func_str).as_bytes()).unwrap();
+
+                        file_c
+                            .write(format!("{} {{\n", func_str).as_bytes())
+                            .unwrap();
+
+                        if let Some(cb) = &callback_type {
+                            file_c
+                                .write(format!("\t{} handler = nullptr;\n", cb).as_bytes())
+                                .unwrap();
+
+                            let params = arg_names
+                                .iter()
+                                .filter(|a| a.starts_with("cb"))
+                                .map(|a| format!("{} != nullptr", a))
+                                .collect::<Vec<String>>();
+                            file_c
+                                .write(format!("\tif ({}) {{\n", params.join(" && ")).as_bytes())
+                                .unwrap();
+
+                            let mut class_name = cb.clone();
+                            class_name.replace_range(Range { start: 0, end: 1 }, ""); // Trim I
+                            class_name = class_name.replace(|a| !char::is_alphanumeric(a), "");
+                            let params2 = arg_names
+                                .iter()
+                                .filter(|a| a.starts_with("cb"))
+                                .map(|a| a.clone())
+                                .collect::<Vec<String>>();
+                            file_c
+                                .write(
+                                    format!(
+                                        "\t\thandler = new {}(ctx, {});\n",
+                                        class_name,
+                                        params2.join(", ")
+                                    )
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+
+                            file_c.write(b"\t}\n").unwrap();
+
+                            let other_params = arg_names
+                                .iter()
+                                .filter(|a| !a.starts_with("cb"))
+                                .map(|a| {
+                                    if a == "ctx" {
+                                        "handler".to_string()
+                                    } else {
+                                        a.clone()
+                                    }
+                                })
+                                .collect::<Vec<String>>();
+                            file_c
+                                .write(
+                                    format!(
+                                        "\treturn obj->{}({});\n",
+                                        name,
+                                        other_params.join(", ")
+                                    )
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+                        } else {
+                            file_c
+                                .write(
+                                    format!("\treturn obj->{}({});\n", name, arg_names.join(", "))
+                                        .as_bytes(),
+                                )
+                                .unwrap();
+                        }
+
+                        file_c.write(b"}\n\n").unwrap();
                     }
 
-                    let f = func.get_result_type().unwrap();
-                    let mut ret_name = f.get_display_name();
-                    let basic_name = ret_name.replace(|a| !char::is_alphanumeric(a), "");
-                    if let Some(a) = type_alias.get(&basic_name) {
-                        ret_name = ret_name.replace(&basic_name, a);
-                    }
-
-                    let func_str = format!(
-                        "{} {}_{}({})",
-                        ret_name,
-                        prefix,
-                        name.to_snake_case(),
-                        args.join(", ")
-                    );
-                    file.write(format!("{};\n", func_str).as_bytes()).unwrap();
-
-                    file_c
-                        .write(format!("{} {{\n", func_str).as_bytes())
-                        .unwrap();
-                    file_c
-                        .write(
-                            format!("\treturn obj->{}({});\n", name, arg_names.join(", "))
-                                .as_bytes(),
-                        )
-                        .unwrap();
-                    file_c.write(b"}\n\n").unwrap();
+                    file.write(b"\n").unwrap();
+                    file_c.write(b"\n").unwrap();
                 }
-
-                file.write(b"\n").unwrap();
-                file_c.write(b"\n").unwrap();
             }
         }
     }
@@ -354,12 +595,7 @@ fn main() {
             if n.starts_with("Create") {
                 println!("func {} {:?}", n, t.get_kind());
 
-                let f = t.get_result_type().unwrap();
-                let mut ret_name = f.get_display_name();
-                let basic_name = ret_name.replace(|a| !char::is_alphanumeric(a), "");
-                if let Some(a) = type_alias.get(&basic_name) {
-                    ret_name = ret_name.replace(&basic_name, a);
-                }
+                let ret_name = convert_type(&type_alias, &t.get_result_type().unwrap());
 
                 let mut snaked = n.to_snake_case();
                 snaked = snaked.replace("deck_link", "decklink");

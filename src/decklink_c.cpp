@@ -1,3 +1,4 @@
+#include <atomic>
 #include "types.h"
 #include "../include/decklink_c.h"
 
@@ -187,30 +188,57 @@ HRESULT cdecklink_encoder_configuration_get_bytes(cdecklink_encoder_configuratio
 }
 
 
-unsigned long cdecklink_deck_control_status_callback_add_ref(cdecklink_deck_control_status_callback_t *obj) {
-	return obj->AddRef();
-}
+class DeckLinkDeckControlStatusCallback final : public IDeckLinkDeckControlStatusCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_deck_control_status_callback_timecode_update *cb0_;
+	cdecklink_deck_control_status_callback_vtr_control_state_changed *cb1_;
+	cdecklink_deck_control_status_callback_deck_control_event_received *cb2_;
+	cdecklink_deck_control_status_callback_deck_control_status_changed *cb3_;
 
-unsigned long cdecklink_deck_control_status_callback_release(cdecklink_deck_control_status_callback_t *obj) {
-	return obj->Release();
-}
+public:
+	DeckLinkDeckControlStatusCallback (void *ctx, cdecklink_deck_control_status_callback_timecode_update *cb0, cdecklink_deck_control_status_callback_vtr_control_state_changed *cb1, cdecklink_deck_control_status_callback_deck_control_event_received *cb2, cdecklink_deck_control_status_callback_deck_control_status_changed *cb3)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1), cb2_(cb2), cb3_(cb3) {}
 
-HRESULT cdecklink_deck_control_status_callback_timecode_update(cdecklink_deck_control_status_callback_t *obj, DecklinkTimecodeBCD currentTimecode) {
-	return obj->TimecodeUpdate(currentTimecode);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
-HRESULT cdecklink_deck_control_status_callback_vtr_control_state_changed(cdecklink_deck_control_status_callback_t *obj, DecklinkDeckControlVTRControlState newState, DecklinkDeckControlError error) {
-	return obj->VTRControlStateChanged(newState, error);
-}
+	HRESULT TimecodeUpdate(BMDTimecodeBCD currentTimecode) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, currentTimecode);
+		}
+		return S_FALSE;
+	}
 
-HRESULT cdecklink_deck_control_status_callback_deck_control_event_received(cdecklink_deck_control_status_callback_t *obj, DecklinkDeckControlEvent event, DecklinkDeckControlError error) {
-	return obj->DeckControlEventReceived(event, error);
-}
+	HRESULT VTRControlStateChanged(BMDDeckControlVTRControlState newState, BMDDeckControlError error) override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_, newState, error);
+		}
+		return S_FALSE;
+	}
 
-HRESULT cdecklink_deck_control_status_callback_deck_control_status_changed(cdecklink_deck_control_status_callback_t *obj, DecklinkDeckControlStatusFlags flags, uint32_t mask) {
-	return obj->DeckControlStatusChanged(flags, mask);
-}
+	HRESULT DeckControlEventReceived(BMDDeckControlEvent event, BMDDeckControlError error) override {
+		if (cb2_ != nullptr) {
+			return cb2_(ctx_, event, error);
+		}
+		return S_FALSE;
+	}
 
+	HRESULT DeckControlStatusChanged(BMDDeckControlStatusFlags flags, uint32_t mask) override {
+		if (cb3_ != nullptr) {
+			return cb3_(ctx_, flags, mask);
+		}
+		return S_FALSE;
+	}
+
+};
 
 unsigned long cdecklink_deck_control_add_ref(cdecklink_deck_control_t *obj) {
 	return obj->AddRef();
@@ -348,65 +376,130 @@ HRESULT cdecklink_deck_control_crash_record_stop(cdecklink_deck_control_t *obj, 
 	return obj->CrashRecordStop(error);
 }
 
-HRESULT cdecklink_deck_control_set_callback(cdecklink_deck_control_t *obj, cdecklink_deck_control_status_callback_t * callback) {
-	return obj->SetCallback(callback);
+HRESULT cdecklink_deck_control_set_callback(cdecklink_deck_control_t *obj, void *ctx, cdecklink_deck_control_status_callback_timecode_update* cb0, cdecklink_deck_control_status_callback_vtr_control_state_changed* cb1, cdecklink_deck_control_status_callback_deck_control_event_received* cb2, cdecklink_deck_control_status_callback_deck_control_status_changed* cb3) {
+	IDeckLinkDeckControlStatusCallback * handler = nullptr;
+	if (cb0 != nullptr && cb1 != nullptr && cb2 != nullptr && cb3 != nullptr) {
+		handler = new DeckLinkDeckControlStatusCallback(ctx, cb0, cb1, cb2, cb3);
+	}
+	return obj->SetCallback(handler);
 }
 
 
-unsigned long cdecklink_video_output_callback_add_ref(cdecklink_video_output_callback_t *obj) {
-	return obj->AddRef();
-}
+class DeckLinkVideoOutputCallback final : public IDeckLinkVideoOutputCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_video_output_callback_scheduled_frame_completed *cb0_;
+	cdecklink_video_output_callback_scheduled_playback_has_stopped *cb1_;
 
-unsigned long cdecklink_video_output_callback_release(cdecklink_video_output_callback_t *obj) {
-	return obj->Release();
-}
+public:
+	DeckLinkVideoOutputCallback (void *ctx, cdecklink_video_output_callback_scheduled_frame_completed *cb0, cdecklink_video_output_callback_scheduled_playback_has_stopped *cb1)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1) {}
 
-HRESULT cdecklink_video_output_callback_scheduled_frame_completed(cdecklink_video_output_callback_t *obj, cdecklink_video_frame_t * completedFrame, DecklinkOutputFrameCompletionResult result) {
-	return obj->ScheduledFrameCompleted(completedFrame, result);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
-HRESULT cdecklink_video_output_callback_scheduled_playback_has_stopped(cdecklink_video_output_callback_t *obj) {
-	return obj->ScheduledPlaybackHasStopped();
-}
+	HRESULT ScheduledFrameCompleted(IDeckLinkVideoFrame * completedFrame, BMDOutputFrameCompletionResult result) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, completedFrame, result);
+		}
+		return S_FALSE;
+	}
 
+	HRESULT ScheduledPlaybackHasStopped() override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_);
+		}
+		return S_FALSE;
+	}
 
-unsigned long cdecklink_input_callback_add_ref(cdecklink_input_callback_t *obj) {
-	return obj->AddRef();
-}
+};
 
-unsigned long cdecklink_input_callback_release(cdecklink_input_callback_t *obj) {
-	return obj->Release();
-}
+class DeckLinkInputCallback final : public IDeckLinkInputCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_input_callback_video_input_format_changed *cb0_;
+	cdecklink_input_callback_video_input_frame_arrived *cb1_;
 
-HRESULT cdecklink_input_callback_video_input_format_changed(cdecklink_input_callback_t *obj, DecklinkVideoInputFormatChangedEvents notificationEvents, cdecklink_display_mode_t * newDisplayMode, DecklinkDetectedVideoInputFormatFlags detectedSignalFlags) {
-	return obj->VideoInputFormatChanged(notificationEvents, newDisplayMode, detectedSignalFlags);
-}
+public:
+	DeckLinkInputCallback (void *ctx, cdecklink_input_callback_video_input_format_changed *cb0, cdecklink_input_callback_video_input_frame_arrived *cb1)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1) {}
 
-HRESULT cdecklink_input_callback_video_input_frame_arrived(cdecklink_input_callback_t *obj, cdecklink_video_input_frame_t * videoFrame, cdecklink_audio_input_packet_t * audioPacket) {
-	return obj->VideoInputFrameArrived(videoFrame, audioPacket);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
+	HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents notificationEvents, IDeckLinkDisplayMode * newDisplayMode, BMDDetectedVideoInputFormatFlags detectedSignalFlags) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, notificationEvents, newDisplayMode, detectedSignalFlags);
+		}
+		return S_FALSE;
+	}
 
-unsigned long cdecklink_encoder_input_callback_add_ref(cdecklink_encoder_input_callback_t *obj) {
-	return obj->AddRef();
-}
+	HRESULT VideoInputFrameArrived(IDeckLinkVideoInputFrame * videoFrame, IDeckLinkAudioInputPacket * audioPacket) override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_, videoFrame, audioPacket);
+		}
+		return S_FALSE;
+	}
 
-unsigned long cdecklink_encoder_input_callback_release(cdecklink_encoder_input_callback_t *obj) {
-	return obj->Release();
-}
+};
 
-HRESULT cdecklink_encoder_input_callback_video_input_signal_changed(cdecklink_encoder_input_callback_t *obj, DecklinkVideoInputFormatChangedEvents notificationEvents, cdecklink_display_mode_t * newDisplayMode, DecklinkDetectedVideoInputFormatFlags detectedSignalFlags) {
-	return obj->VideoInputSignalChanged(notificationEvents, newDisplayMode, detectedSignalFlags);
-}
+class DeckLinkEncoderInputCallback final : public IDeckLinkEncoderInputCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_encoder_input_callback_video_input_signal_changed *cb0_;
+	cdecklink_encoder_input_callback_video_packet_arrived *cb1_;
+	cdecklink_encoder_input_callback_audio_packet_arrived *cb2_;
 
-HRESULT cdecklink_encoder_input_callback_video_packet_arrived(cdecklink_encoder_input_callback_t *obj, cdecklink_encoder_video_packet_t * videoPacket) {
-	return obj->VideoPacketArrived(videoPacket);
-}
+public:
+	DeckLinkEncoderInputCallback (void *ctx, cdecklink_encoder_input_callback_video_input_signal_changed *cb0, cdecklink_encoder_input_callback_video_packet_arrived *cb1, cdecklink_encoder_input_callback_audio_packet_arrived *cb2)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1), cb2_(cb2) {}
 
-HRESULT cdecklink_encoder_input_callback_audio_packet_arrived(cdecklink_encoder_input_callback_t *obj, cdecklink_encoder_audio_packet_t * audioPacket) {
-	return obj->AudioPacketArrived(audioPacket);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
+	HRESULT VideoInputSignalChanged(BMDVideoInputFormatChangedEvents notificationEvents, IDeckLinkDisplayMode * newDisplayMode, BMDDetectedVideoInputFormatFlags detectedSignalFlags) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, notificationEvents, newDisplayMode, detectedSignalFlags);
+		}
+		return S_FALSE;
+	}
+
+	HRESULT VideoPacketArrived(IDeckLinkEncoderVideoPacket * videoPacket) override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_, videoPacket);
+		}
+		return S_FALSE;
+	}
+
+	HRESULT AudioPacketArrived(IDeckLinkEncoderAudioPacket * audioPacket) override {
+		if (cb2_ != nullptr) {
+			return cb2_(ctx_, audioPacket);
+		}
+		return S_FALSE;
+	}
+
+};
 
 unsigned long cdecklink_memory_allocator_add_ref(cdecklink_memory_allocator_t *obj) {
 	return obj->AddRef();
@@ -433,18 +526,33 @@ HRESULT cdecklink_memory_allocator_decommit(cdecklink_memory_allocator_t *obj) {
 }
 
 
-unsigned long cdecklink_audio_output_callback_add_ref(cdecklink_audio_output_callback_t *obj) {
-	return obj->AddRef();
-}
+class DeckLinkAudioOutputCallback final : public IDeckLinkAudioOutputCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_audio_output_callback_render_audio_samples *cb0_;
 
-unsigned long cdecklink_audio_output_callback_release(cdecklink_audio_output_callback_t *obj) {
-	return obj->Release();
-}
+public:
+	DeckLinkAudioOutputCallback (void *ctx, cdecklink_audio_output_callback_render_audio_samples *cb0)
+	: ctx_(ctx), cb0_(cb0) {}
 
-HRESULT cdecklink_audio_output_callback_render_audio_samples(cdecklink_audio_output_callback_t *obj, bool preroll) {
-	return obj->RenderAudioSamples(preroll);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
+	HRESULT RenderAudioSamples(bool preroll) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, preroll);
+		}
+		return S_FALSE;
+	}
+
+};
 
 unsigned long cdecklink_iterator_add_ref(cdecklink_iterator_t *obj) {
 	return obj->AddRef();
@@ -532,8 +640,12 @@ HRESULT cdecklink_output_schedule_video_frame(cdecklink_output_t *obj, cdecklink
 	return obj->ScheduleVideoFrame(theFrame, displayTime, displayDuration, timeScale);
 }
 
-HRESULT cdecklink_output_set_scheduled_frame_completion_callback(cdecklink_output_t *obj, cdecklink_video_output_callback_t * theCallback) {
-	return obj->SetScheduledFrameCompletionCallback(theCallback);
+HRESULT cdecklink_output_set_scheduled_frame_completion_callback(cdecklink_output_t *obj, void *ctx, cdecklink_video_output_callback_scheduled_frame_completed* cb0, cdecklink_video_output_callback_scheduled_playback_has_stopped* cb1) {
+	IDeckLinkVideoOutputCallback * handler = nullptr;
+	if (cb0 != nullptr && cb1 != nullptr) {
+		handler = new DeckLinkVideoOutputCallback(ctx, cb0, cb1);
+	}
+	return obj->SetScheduledFrameCompletionCallback(handler);
 }
 
 HRESULT cdecklink_output_get_buffered_video_frame_count(cdecklink_output_t *obj, uint32_t * bufferedFrameCount) {
@@ -572,8 +684,12 @@ HRESULT cdecklink_output_flush_buffered_audio_samples(cdecklink_output_t *obj) {
 	return obj->FlushBufferedAudioSamples();
 }
 
-HRESULT cdecklink_output_set_audio_callback(cdecklink_output_t *obj, cdecklink_audio_output_callback_t * theCallback) {
-	return obj->SetAudioCallback(theCallback);
+HRESULT cdecklink_output_set_audio_callback(cdecklink_output_t *obj, void *ctx, cdecklink_audio_output_callback_render_audio_samples* cb0) {
+	IDeckLinkAudioOutputCallback * handler = nullptr;
+	if (cb0 != nullptr) {
+		handler = new DeckLinkAudioOutputCallback(ctx, cb0);
+	}
+	return obj->SetAudioCallback(handler);
 }
 
 HRESULT cdecklink_output_start_scheduled_playback(cdecklink_output_t *obj, DecklinkTimeValue playbackStartTime, DecklinkTimeScale timeScale, double playbackSpeed) {
@@ -669,8 +785,12 @@ HRESULT cdecklink_input_flush_streams(cdecklink_input_t *obj) {
 	return obj->FlushStreams();
 }
 
-HRESULT cdecklink_input_set_callback(cdecklink_input_t *obj, cdecklink_input_callback_t * theCallback) {
-	return obj->SetCallback(theCallback);
+HRESULT cdecklink_input_set_callback(cdecklink_input_t *obj, void *ctx, cdecklink_input_callback_video_input_format_changed* cb0, cdecklink_input_callback_video_input_frame_arrived* cb1) {
+	IDeckLinkInputCallback * handler = nullptr;
+	if (cb0 != nullptr && cb1 != nullptr) {
+		handler = new DeckLinkInputCallback(ctx, cb0, cb1);
+	}
+	return obj->SetCallback(handler);
 }
 
 HRESULT cdecklink_input_get_hardware_reference_clock(cdecklink_input_t *obj, DecklinkTimeScale desiredTimeScale, DecklinkTimeValue * hardwareTime, DecklinkTimeValue * timeInFrame, DecklinkTimeValue * ticksPerFrame) {
@@ -738,8 +858,12 @@ HRESULT cdecklink_encoder_input_flush_streams(cdecklink_encoder_input_t *obj) {
 	return obj->FlushStreams();
 }
 
-HRESULT cdecklink_encoder_input_set_callback(cdecklink_encoder_input_t *obj, cdecklink_encoder_input_callback_t * theCallback) {
-	return obj->SetCallback(theCallback);
+HRESULT cdecklink_encoder_input_set_callback(cdecklink_encoder_input_t *obj, void *ctx, cdecklink_encoder_input_callback_video_input_signal_changed* cb0, cdecklink_encoder_input_callback_video_packet_arrived* cb1, cdecklink_encoder_input_callback_audio_packet_arrived* cb2) {
+	IDeckLinkEncoderInputCallback * handler = nullptr;
+	if (cb0 != nullptr && cb1 != nullptr && cb2 != nullptr) {
+		handler = new DeckLinkEncoderInputCallback(ctx, cb0, cb1, cb2);
+	}
+	return obj->SetCallback(handler);
 }
 
 HRESULT cdecklink_encoder_input_get_hardware_reference_clock(cdecklink_encoder_input_t *obj, DecklinkTimeScale desiredTimeScale, DecklinkTimeValue * hardwareTime, DecklinkTimeValue * timeInFrame, DecklinkTimeValue * ticksPerFrame) {
@@ -1018,18 +1142,33 @@ HRESULT cdecklink_audio_input_packet_get_packet_time(cdecklink_audio_input_packe
 }
 
 
-unsigned long cdecklink_screen_preview_callback_add_ref(cdecklink_screen_preview_callback_t *obj) {
-	return obj->AddRef();
-}
+class DeckLinkScreenPreviewCallback final : public IDeckLinkScreenPreviewCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_screen_preview_callback_draw_frame *cb0_;
 
-unsigned long cdecklink_screen_preview_callback_release(cdecklink_screen_preview_callback_t *obj) {
-	return obj->Release();
-}
+public:
+	DeckLinkScreenPreviewCallback (void *ctx, cdecklink_screen_preview_callback_draw_frame *cb0)
+	: ctx_(ctx), cb0_(cb0) {}
 
-HRESULT cdecklink_screen_preview_callback_draw_frame(cdecklink_screen_preview_callback_t *obj, cdecklink_video_frame_t * theFrame) {
-	return obj->DrawFrame(theFrame);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
+	HRESULT DrawFrame(IDeckLinkVideoFrame * theFrame) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, theFrame);
+		}
+		return S_FALSE;
+	}
+
+};
 
 unsigned long cdecklink_gl_screen_preview_helper_add_ref(cdecklink_gl_screen_preview_helper_t *obj) {
 	return obj->AddRef();
@@ -1056,18 +1195,33 @@ HRESULT cdecklink_gl_screen_preview_helper_set3_d_preview_format(cdecklink_gl_sc
 }
 
 
-unsigned long cdecklink_notification_callback_add_ref(cdecklink_notification_callback_t *obj) {
-	return obj->AddRef();
-}
+class DeckLinkNotificationCallback final : public IDeckLinkNotificationCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_notification_callback_notify *cb0_;
 
-unsigned long cdecklink_notification_callback_release(cdecklink_notification_callback_t *obj) {
-	return obj->Release();
-}
+public:
+	DeckLinkNotificationCallback (void *ctx, cdecklink_notification_callback_notify *cb0)
+	: ctx_(ctx), cb0_(cb0) {}
 
-HRESULT cdecklink_notification_callback_notify(cdecklink_notification_callback_t *obj, DecklinkNotifications topic, uint64_t param1, uint64_t param2) {
-	return obj->Notify(topic, param1, param2);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
+	HRESULT Notify(BMDNotifications topic, uint64_t param1, uint64_t param2) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, topic, param1, param2);
+		}
+		return S_FALSE;
+	}
+
+};
 
 unsigned long cdecklink_notification_add_ref(cdecklink_notification_t *obj) {
 	return obj->AddRef();
@@ -1077,12 +1231,20 @@ unsigned long cdecklink_notification_release(cdecklink_notification_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_notification_subscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, cdecklink_notification_callback_t * theCallback) {
-	return obj->Subscribe(topic, theCallback);
+HRESULT cdecklink_notification_subscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, void *ctx, cdecklink_notification_callback_notify* cb0) {
+	IDeckLinkNotificationCallback * handler = nullptr;
+	if (cb0 != nullptr) {
+		handler = new DeckLinkNotificationCallback(ctx, cb0);
+	}
+	return obj->Subscribe(topic, handler);
 }
 
-HRESULT cdecklink_notification_unsubscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, cdecklink_notification_callback_t * theCallback) {
-	return obj->Unsubscribe(topic, theCallback);
+HRESULT cdecklink_notification_unsubscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, void *ctx, cdecklink_notification_callback_notify* cb0) {
+	IDeckLinkNotificationCallback * handler = nullptr;
+	if (cb0 != nullptr) {
+		handler = new DeckLinkNotificationCallback(ctx, cb0);
+	}
+	return obj->Unsubscribe(topic, handler);
 }
 
 
@@ -1182,22 +1344,41 @@ HRESULT cdecklink_video_conversion_convert_frame(cdecklink_video_conversion_t *o
 }
 
 
-unsigned long cdecklink_device_notification_callback_add_ref(cdecklink_device_notification_callback_t *obj) {
-	return obj->AddRef();
-}
+class DeckLinkDeviceNotificationCallback final : public IDeckLinkDeviceNotificationCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_device_notification_callback_deck_link_device_arrived *cb0_;
+	cdecklink_device_notification_callback_deck_link_device_removed *cb1_;
 
-unsigned long cdecklink_device_notification_callback_release(cdecklink_device_notification_callback_t *obj) {
-	return obj->Release();
-}
+public:
+	DeckLinkDeviceNotificationCallback (void *ctx, cdecklink_device_notification_callback_deck_link_device_arrived *cb0, cdecklink_device_notification_callback_deck_link_device_removed *cb1)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1) {}
 
-HRESULT cdecklink_device_notification_callback_deck_link_device_arrived(cdecklink_device_notification_callback_t *obj, cdecklink_device_t * deckLinkDevice) {
-	return obj->DeckLinkDeviceArrived(deckLinkDevice);
-}
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
 
-HRESULT cdecklink_device_notification_callback_deck_link_device_removed(cdecklink_device_notification_callback_t *obj, cdecklink_device_t * deckLinkDevice) {
-	return obj->DeckLinkDeviceRemoved(deckLinkDevice);
-}
+	HRESULT DeckLinkDeviceArrived(IDeckLink * deckLinkDevice) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, deckLinkDevice);
+		}
+		return S_FALSE;
+	}
 
+	HRESULT DeckLinkDeviceRemoved(IDeckLink * deckLinkDevice) override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_, deckLinkDevice);
+		}
+		return S_FALSE;
+	}
+
+};
 
 unsigned long cdecklink_discovery_add_ref(cdecklink_discovery_t *obj) {
 	return obj->AddRef();
@@ -1207,8 +1388,12 @@ unsigned long cdecklink_discovery_release(cdecklink_discovery_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_discovery_install_device_notifications(cdecklink_discovery_t *obj, cdecklink_device_notification_callback_t * deviceNotificationCallback) {
-	return obj->InstallDeviceNotifications(deviceNotificationCallback);
+HRESULT cdecklink_discovery_install_device_notifications(cdecklink_discovery_t *obj, void *ctx, cdecklink_device_notification_callback_deck_link_device_arrived* cb0, cdecklink_device_notification_callback_deck_link_device_removed* cb1) {
+	IDeckLinkDeviceNotificationCallback * handler = nullptr;
+	if (cb0 != nullptr && cb1 != nullptr) {
+		handler = new DeckLinkDeviceNotificationCallback(ctx, cb0, cb1);
+	}
+	return obj->InstallDeviceNotifications(handler);
 }
 
 HRESULT cdecklink_discovery_uninstall_device_notifications(cdecklink_discovery_t *obj) {
