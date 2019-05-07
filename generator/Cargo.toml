@@ -1,0 +1,9 @@
+[package]
+name = "generator"
+version = "0.1.0"
+authors = ["Julian Waller <git@julusian.co.uk>"]
+edition = "2018"
+
+[dependencies]
+clang = "0.22.0"
+heck = "0.3.1"
