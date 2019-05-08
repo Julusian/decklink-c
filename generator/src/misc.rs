@@ -14,7 +14,7 @@ pub fn generate_types_files(
     write_byte(file_c, b"#ifndef DECKLINK_C_TYPES_H\n");
     write_byte(file_c, b"#define DECKLINK_C_TYPES_H\n\n");
 
-    //    write_byte(file_cpp, b"#ifndef DECKLINK_C_TYPES_H\n");
+    // write_byte(file_cpp, b"#ifndef DECKLINK_C_TYPES_H\n");
     write_byte(file_cpp, b"#define DECKLINK_C_TYPES_H\n\n");
     write_byte(
         file_cpp,
@@ -42,7 +42,7 @@ pub fn generate_types_files(
     }
 
     write_byte(file_c, b"\n#endif //DECKLINK_C_TYPES_H\n");
-    //    write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
+    // write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
 }
 
 pub fn process_enums(tu: &clang::TranslationUnit, ctx: &mut Context, file: &mut LineWriter<File>) {
@@ -137,7 +137,7 @@ pub fn process_query_interface(
             for cap in re.captures_iter(&raw_str) {
                 let src_name = format!("IDeck{}", &cap[4]);
                 let dst_name = format!("IDeckLink{}", &cap[1]);
-                //                println!("IDeckLink{} from IDeck{}", &cap[1], &cap[4]);
+                // println!("IDeckLink{} from IDeck{}", &cap[1], &cap[4]);
 
                 if let Some(new_src_name) = ctx.type_alias.get(&src_name) {
                     if let Some(new_dst_name) = ctx.type_alias.get(&dst_name) {
@@ -178,7 +178,7 @@ pub fn process_c_functions(
         for t in t.get_children() {
             let n = t.get_name().unwrap();
             if n.starts_with("Create") {
-                println!("func {} {:?}", n, t.get_kind());
+                // println!("func {} {:?}", n, t.get_kind());
 
                 let ret_name = ctx.convert_type(&t.get_result_type().unwrap());
 

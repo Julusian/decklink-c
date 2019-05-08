@@ -29,7 +29,7 @@ impl Context {
         let mut callback_type = None;
 
         for a in func.get_arguments().unwrap() {
-            println!("{}", a.get_type().unwrap().get_display_name());
+            // println!("{}", a.get_type().unwrap().get_display_name());
             if let Some(k) = self.get_callback_params(&a.get_type().unwrap().get_display_name()) {
                 args.push("void *ctx".to_string());
                 arg_names.push("ctx".to_string());
