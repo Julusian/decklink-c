@@ -1,9 +1,7 @@
 # Decklink_C
 
 Blackmagic Design Decklink SDK wrapper for C compatability.
-This aims to be an easy to use and safe wrapper around the official C++ SDK.
-
-Note: This is very incomplete, but is working. The examples currently follow the official examples as closely as possible
+This is a minimal auto-generated wrapper around the official C++ SDK.
 
 ## Installation
 
@@ -11,6 +9,8 @@ Clone the library and include `include/decklink_c.h` in your project to get goin
 drivers (>=10.9.12) installed on your machine and a compatible device connected to do much with it.
 
 ## Usage
+
+The official SDK documentation is a useful reference for this library.
 
 See the examples for more information.
 
