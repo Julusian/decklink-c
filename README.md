@@ -1,6 +1,7 @@
 # Decklink_C
 
-Blackmagic Design Decklink SDK wrapper for C compatability.
+Blackmagic Design Decklink SDK wrapper for C compatability or for other language bindings.
+
 This is a minimal auto-generated wrapper around the official C++ SDK.
 
 ## Installation
