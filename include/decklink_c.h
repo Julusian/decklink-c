@@ -675,6 +675,30 @@ enum _DecklinkNotifications {
 };
 
 
+typedef HRESULT cdecklink_deck_control_status_callback_timecode_update(void *obj, DecklinkTimecodeBCD currentTimecode);
+typedef HRESULT cdecklink_deck_control_status_callback_vtr_control_state_changed(void *obj, DecklinkDeckControlVTRControlState newState, DecklinkDeckControlError error);
+typedef HRESULT cdecklink_deck_control_status_callback_deck_control_event_received(void *obj, DecklinkDeckControlEvent event, DecklinkDeckControlError error);
+typedef HRESULT cdecklink_deck_control_status_callback_deck_control_status_changed(void *obj, DecklinkDeckControlStatusFlags flags, uint32_t mask);
+
+typedef HRESULT cdecklink_video_output_callback_scheduled_frame_completed(void *obj, cdecklink_video_frame_t * completedFrame, DecklinkOutputFrameCompletionResult result);
+typedef HRESULT cdecklink_video_output_callback_scheduled_playback_has_stopped(void *obj);
+
+typedef HRESULT cdecklink_input_callback_video_input_format_changed(void *obj, DecklinkVideoInputFormatChangedEvents notificationEvents, cdecklink_display_mode_t * newDisplayMode, DecklinkDetectedVideoInputFormatFlags detectedSignalFlags);
+typedef HRESULT cdecklink_input_callback_video_input_frame_arrived(void *obj, cdecklink_video_input_frame_t * videoFrame, cdecklink_audio_input_packet_t * audioPacket);
+
+typedef HRESULT cdecklink_encoder_input_callback_video_input_signal_changed(void *obj, DecklinkVideoInputFormatChangedEvents notificationEvents, cdecklink_display_mode_t * newDisplayMode, DecklinkDetectedVideoInputFormatFlags detectedSignalFlags);
+typedef HRESULT cdecklink_encoder_input_callback_video_packet_arrived(void *obj, cdecklink_encoder_video_packet_t * videoPacket);
+typedef HRESULT cdecklink_encoder_input_callback_audio_packet_arrived(void *obj, cdecklink_encoder_audio_packet_t * audioPacket);
+
+typedef HRESULT cdecklink_audio_output_callback_render_audio_samples(void *obj, bool preroll);
+
+typedef HRESULT cdecklink_screen_preview_callback_draw_frame(void *obj, cdecklink_video_frame_t * theFrame);
+
+typedef HRESULT cdecklink_notification_callback_notify(void *obj, DecklinkNotifications topic, uint64_t param1, uint64_t param2);
+
+typedef HRESULT cdecklink_device_notification_callback_deck_link_device_arrived(void *obj, cdecklink_device_t * deckLinkDevice);
+typedef HRESULT cdecklink_device_notification_callback_deck_link_device_removed(void *obj, cdecklink_device_t * deckLinkDevice);
+
 unsigned long cdecklink_timecode_add_ref(cdecklink_timecode_t *obj);
 unsigned long cdecklink_timecode_release(cdecklink_timecode_t *obj);
 DecklinkTimecodeBCD cdecklink_timecode_get_bcd(cdecklink_timecode_t *obj);
@@ -726,11 +750,6 @@ HRESULT cdecklink_encoder_configuration_set_string(cdecklink_encoder_configurati
 HRESULT cdecklink_encoder_configuration_get_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char ** value);
 HRESULT cdecklink_encoder_configuration_get_bytes(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, void * buffer, uint32_t * bufferSize);
 
-typedef HRESULT cdecklink_deck_control_status_callback_timecode_update(void *obj, DecklinkTimecodeBCD currentTimecode);
-typedef HRESULT cdecklink_deck_control_status_callback_vtr_control_state_changed(void *obj, DecklinkDeckControlVTRControlState newState, DecklinkDeckControlError error);
-typedef HRESULT cdecklink_deck_control_status_callback_deck_control_event_received(void *obj, DecklinkDeckControlEvent event, DecklinkDeckControlError error);
-typedef HRESULT cdecklink_deck_control_status_callback_deck_control_status_changed(void *obj, DecklinkDeckControlStatusFlags flags, uint32_t mask);
-
 unsigned long cdecklink_deck_control_add_ref(cdecklink_deck_control_t *obj);
 unsigned long cdecklink_deck_control_release(cdecklink_deck_control_t *obj);
 HRESULT cdecklink_deck_control_open(cdecklink_deck_control_t *obj, DecklinkTimeScale timeScale, DecklinkTimeValue timeValue, bool timecodeIsDropFrame, DecklinkDeckControlError * error);
@@ -767,24 +786,12 @@ HRESULT cdecklink_deck_control_crash_record_start(cdecklink_deck_control_t *obj,
 HRESULT cdecklink_deck_control_crash_record_stop(cdecklink_deck_control_t *obj, DecklinkDeckControlError * error);
 HRESULT cdecklink_deck_control_set_callback(cdecklink_deck_control_t *obj, void *ctx, cdecklink_deck_control_status_callback_timecode_update* cb0, cdecklink_deck_control_status_callback_vtr_control_state_changed* cb1, cdecklink_deck_control_status_callback_deck_control_event_received* cb2, cdecklink_deck_control_status_callback_deck_control_status_changed* cb3);
 
-typedef HRESULT cdecklink_video_output_callback_scheduled_frame_completed(void *obj, cdecklink_video_frame_t * completedFrame, DecklinkOutputFrameCompletionResult result);
-typedef HRESULT cdecklink_video_output_callback_scheduled_playback_has_stopped(void *obj);
-
-typedef HRESULT cdecklink_input_callback_video_input_format_changed(void *obj, DecklinkVideoInputFormatChangedEvents notificationEvents, cdecklink_display_mode_t * newDisplayMode, DecklinkDetectedVideoInputFormatFlags detectedSignalFlags);
-typedef HRESULT cdecklink_input_callback_video_input_frame_arrived(void *obj, cdecklink_video_input_frame_t * videoFrame, cdecklink_audio_input_packet_t * audioPacket);
-
-typedef HRESULT cdecklink_encoder_input_callback_video_input_signal_changed(void *obj, DecklinkVideoInputFormatChangedEvents notificationEvents, cdecklink_display_mode_t * newDisplayMode, DecklinkDetectedVideoInputFormatFlags detectedSignalFlags);
-typedef HRESULT cdecklink_encoder_input_callback_video_packet_arrived(void *obj, cdecklink_encoder_video_packet_t * videoPacket);
-typedef HRESULT cdecklink_encoder_input_callback_audio_packet_arrived(void *obj, cdecklink_encoder_audio_packet_t * audioPacket);
-
 unsigned long cdecklink_memory_allocator_add_ref(cdecklink_memory_allocator_t *obj);
 unsigned long cdecklink_memory_allocator_release(cdecklink_memory_allocator_t *obj);
 HRESULT cdecklink_memory_allocator_allocate_buffer(cdecklink_memory_allocator_t *obj, uint32_t bufferSize, void ** allocatedBuffer);
 HRESULT cdecklink_memory_allocator_release_buffer(cdecklink_memory_allocator_t *obj, void * buffer);
 HRESULT cdecklink_memory_allocator_commit(cdecklink_memory_allocator_t *obj);
 HRESULT cdecklink_memory_allocator_decommit(cdecklink_memory_allocator_t *obj);
-
-typedef HRESULT cdecklink_audio_output_callback_render_audio_samples(void *obj, bool preroll);
 
 unsigned long cdecklink_iterator_add_ref(cdecklink_iterator_t *obj);
 unsigned long cdecklink_iterator_release(cdecklink_iterator_t *obj);
@@ -801,7 +808,7 @@ unsigned long cdecklink_output_add_ref(cdecklink_output_t *obj);
 unsigned long cdecklink_output_release(cdecklink_output_t *obj);
 HRESULT cdecklink_output_does_support_video_mode(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoOutputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode);
 HRESULT cdecklink_output_get_display_mode_iterator(cdecklink_output_t *obj, cdecklink_display_mode_iterator_t ** iterator);
-HRESULT cdecklink_output_set_screen_preview_callback(cdecklink_output_t *obj, cdecklink_screen_preview_callback_t * previewCallback);
+HRESULT cdecklink_output_set_screen_preview_callback(cdecklink_output_t *obj, void *ctx, cdecklink_screen_preview_callback_draw_frame* cb0);
 HRESULT cdecklink_output_enable_video_output(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, DecklinkVideoOutputFlags flags);
 HRESULT cdecklink_output_disable_video_output(cdecklink_output_t *obj);
 HRESULT cdecklink_output_set_video_output_frame_memory_allocator(cdecklink_output_t *obj, cdecklink_memory_allocator_t * theAllocator);
@@ -832,7 +839,7 @@ unsigned long cdecklink_input_add_ref(cdecklink_input_t *obj);
 unsigned long cdecklink_input_release(cdecklink_input_t *obj);
 HRESULT cdecklink_input_does_support_video_mode(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode);
 HRESULT cdecklink_input_get_display_mode_iterator(cdecklink_input_t *obj, cdecklink_display_mode_iterator_t ** iterator);
-HRESULT cdecklink_input_set_screen_preview_callback(cdecklink_input_t *obj, cdecklink_screen_preview_callback_t * previewCallback);
+HRESULT cdecklink_input_set_screen_preview_callback(cdecklink_input_t *obj, void *ctx, cdecklink_screen_preview_callback_draw_frame* cb0);
 HRESULT cdecklink_input_enable_video_input(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags);
 HRESULT cdecklink_input_disable_video_input(cdecklink_input_t *obj);
 HRESULT cdecklink_input_get_available_video_frame_count(cdecklink_input_t *obj, uint32_t * availableFrameCount);
@@ -941,16 +948,12 @@ long cdecklink_audio_input_packet_get_sample_frame_count(cdecklink_audio_input_p
 HRESULT cdecklink_audio_input_packet_get_bytes(cdecklink_audio_input_packet_t *obj, void ** buffer);
 HRESULT cdecklink_audio_input_packet_get_packet_time(cdecklink_audio_input_packet_t *obj, DecklinkTimeValue * packetTime, DecklinkTimeScale timeScale);
 
-typedef HRESULT cdecklink_screen_preview_callback_draw_frame(void *obj, cdecklink_video_frame_t * theFrame);
-
 unsigned long cdecklink_gl_screen_preview_helper_add_ref(cdecklink_gl_screen_preview_helper_t *obj);
 unsigned long cdecklink_gl_screen_preview_helper_release(cdecklink_gl_screen_preview_helper_t *obj);
 HRESULT cdecklink_gl_screen_preview_helper_initialize_gl(cdecklink_gl_screen_preview_helper_t *obj);
 HRESULT cdecklink_gl_screen_preview_helper_paint_gl(cdecklink_gl_screen_preview_helper_t *obj);
 HRESULT cdecklink_gl_screen_preview_helper_set_frame(cdecklink_gl_screen_preview_helper_t *obj, cdecklink_video_frame_t * theFrame);
 HRESULT cdecklink_gl_screen_preview_helper_set3_d_preview_format(cdecklink_gl_screen_preview_helper_t *obj, Decklink3DPreviewFormat previewFormat);
-
-typedef HRESULT cdecklink_notification_callback_notify(void *obj, DecklinkNotifications topic, uint64_t param1, uint64_t param2);
 
 unsigned long cdecklink_notification_add_ref(cdecklink_notification_t *obj);
 unsigned long cdecklink_notification_release(cdecklink_notification_t *obj);
@@ -983,9 +986,6 @@ HRESULT cdecklink_keyer_disable(cdecklink_keyer_t *obj);
 unsigned long cdecklink_video_conversion_add_ref(cdecklink_video_conversion_t *obj);
 unsigned long cdecklink_video_conversion_release(cdecklink_video_conversion_t *obj);
 HRESULT cdecklink_video_conversion_convert_frame(cdecklink_video_conversion_t *obj, cdecklink_video_frame_t * srcFrame, cdecklink_video_frame_t * dstFrame);
-
-typedef HRESULT cdecklink_device_notification_callback_deck_link_device_arrived(void *obj, cdecklink_device_t * deckLinkDevice);
-typedef HRESULT cdecklink_device_notification_callback_deck_link_device_removed(void *obj, cdecklink_device_t * deckLinkDevice);
 
 unsigned long cdecklink_discovery_add_ref(cdecklink_discovery_t *obj);
 unsigned long cdecklink_discovery_release(cdecklink_discovery_t *obj);

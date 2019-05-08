@@ -277,33 +277,31 @@ pub fn process_classes(
     file: &mut LineWriter<File>,
     file_c: &mut LineWriter<File>,
 ) {
-    let classes: Vec<clang::Entity> = tu
+    let classes = tu
         .get_entity()
         .get_children()
         .into_iter()
         .filter(|e| e.get_kind() == clang::EntityKind::ClassDecl && !e.get_children().is_empty())
-        .collect::<Vec<clang::Entity>>();
+        .map(|e| {
+            let name = e.get_name().unwrap();
+            let prefix = generate_class_prefix(&name).unwrap_or_else(|| "".to_string());
 
-    for cl in classes {
-        // let type_ = cl.get_type().unwrap();
-        // println!("class: {:?}", cl.get_name().unwrap());
+            (e, name, prefix)
+        })
+        .filter(|e| e.1.starts_with("IDeckLink") && !e.2.is_empty())
+        .collect::<Vec<(clang::Entity, String, String)>>();
 
-        let name = cl.get_name().unwrap();
-        if name.starts_with("IDeckLink") {
-            if let Some(prefix) = generate_class_prefix(&name) {
-                let struct_name = format!("{}_t", prefix);
+    // Callback classes
+    for cl in &classes {
+        if cl.1.contains("Callback") {
+            process_callback_class(&cl.0, ctx, file, file_c, &cl.2, &cl.1);
+        }
+    }
 
-                // file.write(format!("typedef void {};\n", struct_name).as_bytes()).unwrap();
-                // println!("{}", struct_name);
-
-                if name.contains("Callback") {
-                    // println!("class: {:?}", cl.get_name().unwrap());
-
-                    process_callback_class(&cl, ctx, file, file_c, &prefix, &name);
-                } else {
-                    process_normal_class(&cl, ctx, file, file_c, &prefix, &struct_name);
-                }
-            }
+    // Normal classes
+    for cl in &classes {
+        if !cl.1.contains("Callback") {
+            process_normal_class(&cl.0, ctx, file, file_c, &cl.2, &format!("{}_t", cl.2));
         }
     }
 }

@@ -30,7 +30,9 @@ pub fn generate_types_files(
 
     for cl in class_names {
         let name = cl.get_name().unwrap();
-        if name.starts_with("IDeckLink") {
+        if name.contains("Callback") {
+            continue;
+        } else if name.starts_with("IDeckLink") {
             if let Some(prefix) = generate_class_prefix(&name) {
                 let struct_name = format!("{}_t", prefix);
 
