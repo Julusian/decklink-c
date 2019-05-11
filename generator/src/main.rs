@@ -42,6 +42,12 @@ fn main() {
     let file_types_cpp = File::create("../src/types.h").unwrap();
     let mut file_types_cpp = LineWriter::new(file_types_cpp);
 
+    let callbacks_cpp = File::create("../src/callbacks.cpp").unwrap();
+    let mut callbacks_cpp = LineWriter::new(callbacks_cpp);
+
+    let callbacks_h = File::create("../src/callbacks.h").unwrap();
+    let mut callbacks_h = LineWriter::new(callbacks_h);
+
     write_byte(&mut file, b"#ifndef DECKLINK_C_API_H\n");
     write_byte(&mut file, b"#define DECKLINK_C_API_H\n\n");
 
@@ -53,9 +59,18 @@ fn main() {
     write_byte(&mut file_c, b"#include <atomic>\n");
     write_byte(&mut file_c, b"#include \"types.h\"\n");
     write_byte(&mut file_c, b"#include \"../include/api.h\"\n");
+    write_byte(&mut file_c, b"#include \"callbacks.h\"\n");
     write_byte(&mut file_c, b"\n");
 
     write_byte(&mut file, b"#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
+
+    write_byte(&mut callbacks_h, b"#ifndef DECKLINK_C_CALLBACKS_H\n");
+    write_byte(&mut callbacks_h, b"#define DECKLINK_C_CALLBACKS_H\n\n");
+
+    write_byte(&mut callbacks_cpp, b"#include <atomic>\n");
+    write_byte(&mut callbacks_cpp, b"#include \"types.h\"\n");
+    write_byte(&mut callbacks_cpp, b"#include \"../include/api.h\"\n");
+    write_byte(&mut callbacks_cpp, b"#include \"callbacks.h\"\n\n");
 
     let mut ctx = Context {
         type_alias: HashMap::new(),
@@ -67,7 +82,7 @@ fn main() {
 
     misc::process_enum_typedefs(&tu, &mut ctx, &mut file);
     misc::process_enums(&tu, &mut ctx, &mut file);
-    class::process_classes(&tu, &mut ctx, &mut file, &mut file_c);
+    class::process_classes(&tu, &mut ctx, &mut file, &mut file_c, &mut callbacks_h, &mut callbacks_cpp);
 
     misc::process_c_functions(&tu, &ctx, &mut file, &mut file_c);
     misc::process_query_interface(&tu, &ctx, &mut file, &mut file_c);
@@ -75,4 +90,6 @@ fn main() {
     write_byte(&mut file, b"#ifdef __cplusplus\n};\n#endif\n\n");
 
     write_byte(&mut file, b"\n#endif //DECKLINK_C_API_H\n");
+
+    write_byte(&mut callbacks_h, b"\n#endif //DECKLINK_C_CALLBACKS_H\n");
 }

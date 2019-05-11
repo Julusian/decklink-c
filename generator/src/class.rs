@@ -10,6 +10,7 @@ fn process_callback_class(
     ctx: &mut Context,
     file: &mut LineWriter<File>,
     file_c: &mut LineWriter<File>,
+    callbacks_h: &mut LineWriter<File>,
     prefix: &str,
     name: &str,
 ) {
@@ -138,6 +139,43 @@ fn process_callback_class(
 
     write_byte(file_c, b"};\n\n");
 
+    write_str(
+        callbacks_h,
+        format!(
+            "{}* cdecklink_internal_callback_create_{} (void *ctx, {});\n",
+            class_name,
+            class_name2.to_snake_case(),
+            cb_names_and_types.join(", ")
+        ),
+    );
+    write_str(
+        file_c,
+        format!(
+            "{}* cdecklink_internal_callback_create_{} (void *ctx, {}) {{\n",
+            class_name,
+            class_name2.to_snake_case(),
+            cb_names_and_types.join(", ")
+        ),
+    );
+
+    let null_guards = cb_names
+        .iter()
+        .map(|a| format!("{} != nullptr", a))
+        .collect::<Vec<String>>();
+    write_str(file_c, format!("\tif ({}) {{\n", null_guards.join(" || ")));
+    write_str(
+        file_c,
+        format!(
+            "\t\treturn new {}(ctx, {});\n",
+            class_name2,
+            cb_names.join(", ")
+        ),
+    );
+
+    write_byte(file_c, b"\t}\n");
+    write_byte(file_c, b"\treturn nullptr;\n");
+    write_byte(file_c, b"}\n\n");
+
     write_byte(file, b"\n");
 }
 
@@ -220,15 +258,6 @@ fn process_normal_class(
 
         // If is a callback registration, then we need some special logic
         if let Some(callback_class) = &callback_class {
-            write_str(file_c, format!("\t{} handler = nullptr;\n", callback_class));
-
-            let null_guards = arg_names
-                .iter()
-                .filter(|a| a.starts_with("cb"))
-                .map(|a| format!("{} != nullptr", a))
-                .collect::<Vec<String>>();
-            write_str(file_c, format!("\tif ({}) {{\n", null_guards.join(" && ")));
-
             let mut class_name = callback_class.clone();
             class_name.replace_range(Range { start: 0, end: 1 }, ""); // Trim I
             class_name = class_name.replace(|a| !char::is_alphanumeric(a), "");
@@ -240,13 +269,12 @@ fn process_normal_class(
             write_str(
                 file_c,
                 format!(
-                    "\t\thandler = new {}(ctx, {});\n",
-                    class_name,
+                    "\t{} handler = cdecklink_internal_callback_create_{}(ctx, {});\n",
+                    callback_class,
+                    class_name.to_snake_case(),
                     function_ids.join(", ")
                 ),
             );
-
-            write_byte(file_c, b"\t}\n");
 
             let exec_params = arg_names
                 .iter()
@@ -282,6 +310,8 @@ pub fn process_classes(
     ctx: &mut Context,
     file: &mut LineWriter<File>,
     file_c: &mut LineWriter<File>,
+    callbacks_h: &mut LineWriter<File>,
+    callbacks_cpp: &mut LineWriter<File>,
 ) {
     let classes = tu
         .get_entity()
@@ -300,7 +330,7 @@ pub fn process_classes(
     // Callback classes
     for cl in &classes {
         if cl.1.contains("Callback") {
-            process_callback_class(&cl.0, ctx, file, file_c, &cl.2, &cl.1);
+            process_callback_class(&cl.0, ctx, file, callbacks_cpp, callbacks_h, &cl.2, &cl.1);
         }
     }
 

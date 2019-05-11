@@ -10,6 +10,8 @@ set(SOURCES
         include/util.h
 
         src/api.cpp
+        src/callbacks.cpp
+        src/callbacks.h
         src/types.h
         src/util.cpp
 

@@ -10,6 +10,7 @@ typedef IDeckLinkNotificationCallback cdecklink_notification_callback_notify_han
 
 #include "types.h"
 #include "include/util.h"
+#include "callbacks.h"
 
 void cdecklink_free_string(const char *str) {
     free((void *) str);
@@ -41,14 +42,17 @@ HRESULT cdecklink_notification_subscribe(
         void *ctx,
         cdecklink_notification_callback_notify *cb0,
         cdecklink_notification_callback_notify_handle **handle) {
-    // TODO
-    return S_OK;
+    *handle = cdecklink_internal_callback_create_deck_link_notification_callback(ctx, cb0);
+    if (*handle != nullptr) {
+        return obj->Subscribe(topic, *handle);
+    }
+
+    return S_FALSE;
 }
 
 HRESULT cdecklink_notification_unsubscribe(
         cdecklink_notification_t *obj,
         DecklinkNotifications topic,
         cdecklink_notification_callback_notify_handle *handle) {
-    // TODO
-    return S_OK;
+    return obj->Unsubscribe(topic, handle);
 }
