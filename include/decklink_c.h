@@ -957,8 +957,6 @@ HRESULT cdecklink_gl_screen_preview_helper_set3_d_preview_format(cdecklink_gl_sc
 
 unsigned long cdecklink_notification_add_ref(cdecklink_notification_t *obj);
 unsigned long cdecklink_notification_release(cdecklink_notification_t *obj);
-HRESULT cdecklink_notification_subscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, void *ctx, cdecklink_notification_callback_notify* cb0);
-HRESULT cdecklink_notification_unsubscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, void *ctx, cdecklink_notification_callback_notify* cb0);
 
 unsigned long cdecklink_attributes_add_ref(cdecklink_attributes_t *obj);
 unsigned long cdecklink_attributes_release(cdecklink_attributes_t *obj);

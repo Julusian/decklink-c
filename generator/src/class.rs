@@ -27,17 +27,17 @@ fn process_callback_class(
         let (args, _, _) = ctx.parse_args(&func, "void");
         let ret_name = ctx.convert_type(&func.get_result_type().unwrap());
 
+        let func_name = format!("{}_{}", prefix, name.to_snake_case());
         let func_str = format!(
-            "{} {}_{}({})",
+            "{} {}({})",
             ret_name,
-            prefix,
-            name.to_snake_case(),
+            func_name,
             args.join(", ")
         );
         // println!("callback: {}", func_str);
         write_str(file, format!("typedef {};\n", func_str));
 
-        callbacks.push(format!("{}_{}", prefix, name.to_snake_case()));
+        callbacks.push(func_name);
     }
 
     ctx.callback_params
@@ -103,6 +103,7 @@ fn process_callback_class(
     let fake_ctx = Context {
         type_alias: HashMap::new(),
         callback_params: HashMap::new(),
+        ignore_names: Vec::new(), // TODO - is this correct?
     };
 
     for (i, ch) in children.iter().enumerate() {
@@ -201,13 +202,18 @@ fn process_normal_class(
         let (args, arg_names, callback_class) = ctx.parse_args(&func, &struct_name);
         let ret_name = ctx.convert_type(&func.get_result_type().unwrap());
 
+        let func_name = format!("{}_{}", prefix, name.to_snake_case());
         let func_str = format!(
-            "{} {}_{}({})",
+            "{} {}({})",
             ret_name,
-            prefix,
-            name.to_snake_case(),
+            func_name,
             args.join(", ")
         );
+
+        if ctx.ignore_names.iter().any(|x| x == &func_name) {
+            continue;
+        }
+
         write_str(file, format!("{};\n", func_str));
 
         write_str(file_c, format!("{} {{\n", func_str));

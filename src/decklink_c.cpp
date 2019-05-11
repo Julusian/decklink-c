@@ -1275,22 +1275,6 @@ unsigned long cdecklink_notification_release(cdecklink_notification_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_notification_subscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, void *ctx, cdecklink_notification_callback_notify* cb0) {
-	IDeckLinkNotificationCallback * handler = nullptr;
-	if (cb0 != nullptr) {
-		handler = new DeckLinkNotificationCallback(ctx, cb0);
-	}
-	return obj->Subscribe(topic, handler);
-}
-
-HRESULT cdecklink_notification_unsubscribe(cdecklink_notification_t *obj, DecklinkNotifications topic, void *ctx, cdecklink_notification_callback_notify* cb0) {
-	IDeckLinkNotificationCallback * handler = nullptr;
-	if (cb0 != nullptr) {
-		handler = new DeckLinkNotificationCallback(ctx, cb0);
-	}
-	return obj->Unsubscribe(topic, handler);
-}
-
 
 unsigned long cdecklink_attributes_add_ref(cdecklink_attributes_t *obj) {
 	return obj->AddRef();

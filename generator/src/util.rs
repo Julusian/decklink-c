@@ -15,6 +15,7 @@ pub fn write_byte(writer: &mut LineWriter<File>, b: &[u8]) {
 pub struct Context {
     pub type_alias: HashMap<String, String>,
     pub callback_params: HashMap<String, Vec<String>>,
+    pub ignore_names: Vec<&'static str>,
 }
 impl Context {
     pub fn parse_args(

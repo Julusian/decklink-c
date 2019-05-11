@@ -12,6 +12,9 @@ mod misc;
 mod util;
 
 fn main() {
+    // A list of names to skip generation of, eg for special case handling
+    let ignore_names = vec!["cdecklink_notification_subscribe", "cdecklink_notification_unsubscribe"];
+
     // Acquire an instance of `Clang`
     let clang = clang::Clang::new().unwrap();
 
@@ -57,6 +60,7 @@ fn main() {
     let mut ctx = Context {
         type_alias: HashMap::new(),
         callback_params: HashMap::new(),
+        ignore_names,
     };
 
     misc::generate_types_files(&tu, &mut ctx, &mut file_types_c, &mut file_types_cpp);
