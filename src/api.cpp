@@ -1,6 +1,6 @@
 #include <atomic>
 #include "types.h"
-#include "../include/decklink_c.h"
+#include "../include/api.h"
 
 class DeckLinkDeckControlStatusCallback final : public IDeckLinkDeckControlStatusCallback {
 	std::atomic<int> ref_count_{0};

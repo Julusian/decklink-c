@@ -1,4 +1,12 @@
 #include <memory>
+#include "types.h"
+
+#ifndef DECKLINK_C_CUSTOM_TYPES_H
+#define DECKLINK_C_CUSTOM_TYPES_H
+
+typedef IDeckLinkNotificationCallback cdecklink_notification_callback_notify_handle;
+
+#endif //DECKLINK_C_CUSTOM_TYPES_H
 
 #include "types.h"
 #include "include/util.h"
@@ -25,4 +33,22 @@ HRESULT cdecklink_device_query_status(cdecklink_device_t *obj, cdecklink_status_
 
 HRESULT cdecklink_device_query_notification(cdecklink_device_t *obj, cdecklink_notification_t **dst) {
     return obj->QueryInterface(IID_IDeckLinkNotification, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_notification_subscribe(
+        cdecklink_notification_t *obj,
+        DecklinkNotifications topic,
+        void *ctx,
+        cdecklink_notification_callback_notify *cb0,
+        cdecklink_notification_callback_notify_handle **handle) {
+    // TODO
+    return S_OK;
+}
+
+HRESULT cdecklink_notification_unsubscribe(
+        cdecklink_notification_t *obj,
+        DecklinkNotifications topic,
+        cdecklink_notification_callback_notify_handle *handle) {
+    // TODO
+    return S_OK;
 }

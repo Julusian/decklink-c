@@ -30,10 +30,10 @@ fn main() {
 
     println!("starting");
 
-    let file = File::create("../include/decklink_c.h").unwrap();
+    let file = File::create("../include/api.h").unwrap();
     let mut file = LineWriter::new(file);
 
-    let file_c = File::create("../src/decklink_c.cpp").unwrap();
+    let file_c = File::create("../src/api.cpp").unwrap();
     let mut file_c = LineWriter::new(file_c);
 
     let file_types_c = File::create("../include/types.h").unwrap();
@@ -47,12 +47,12 @@ fn main() {
 
     write_byte(&mut file, b"#include \"common.h\"\n");
     write_byte(&mut file, b"#include \"types.h\"\n");
-    write_byte(&mut file, b"#include \"util.h\"\n");
+//    write_byte(&mut file, b"#include \"util.h\"\n");
     write_byte(&mut file, b"\n");
 
     write_byte(&mut file_c, b"#include <atomic>\n");
     write_byte(&mut file_c, b"#include \"types.h\"\n");
-    write_byte(&mut file_c, b"#include \"../include/decklink_c.h\"\n");
+    write_byte(&mut file_c, b"#include \"../include/api.h\"\n");
     write_byte(&mut file_c, b"\n");
 
     write_byte(&mut file, b"#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");

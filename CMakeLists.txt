@@ -4,11 +4,12 @@ project(decklink_c)
 set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCES
+        include/api.h
         include/decklink_c.h
         include/types.h
         include/util.h
 
-        src/decklink_c.cpp
+        src/api.cpp
         src/types.h
         src/util.cpp
 
