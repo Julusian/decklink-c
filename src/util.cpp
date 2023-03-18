@@ -1,5 +1,6 @@
 #include <memory>
 #include "types.h"
+#include <cstdlib>
 
 #ifndef DECKLINK_C_CUSTOM_TYPES_H
 #define DECKLINK_C_CUSTOM_TYPES_H
