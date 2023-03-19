@@ -32,5 +32,6 @@ typedef void cdecklink_status_t;
 typedef void cdecklink_keyer_t;
 typedef void cdecklink_video_conversion_t;
 typedef void cdecklink_discovery_t;
+typedef void cdecklink_custom_video_frame_t;
 
-#endif //DECKLINK_C_TYPES_H
+#endif // DECKLINK_C_TYPES_H
