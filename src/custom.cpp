@@ -13,6 +13,7 @@ class CustomDecklinkFrame : public IDeckLinkVideoFrame
 
     void *bytes;
     cdecklink_custom_video_frame_free_bytes *finalizer;
+    void *context;
 
     std::atomic<int> ref_count_{0};
 
@@ -26,9 +27,10 @@ public:
     {
         if (finalizer && bytes)
         {
-            finalizer(bytes);
+            finalizer(bytes, context);
             bytes = nullptr;
             finalizer = nullptr;
+            context = nullptr;
         }
     }
 
@@ -85,17 +87,19 @@ public:
 
     // Custom
 
-    void SetBytes(void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer)
+    void SetBytes(void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer, void *context)
     {
         if (finalizer && bytes)
         {
-            finalizer(bytes);
+            finalizer(bytes, context);
             bytes = nullptr;
             finalizer = nullptr;
+            context = nullptr;
         }
 
         bytes = buffer;
         finalizer = finalizer;
+        context = context;
     }
 };
 
@@ -136,8 +140,8 @@ HRESULT cdecklink_custom_video_frame_get_bytes(cdecklink_custom_video_frame_t *o
 {
     return obj->GetBytes(buffer);
 }
-HRESULT cdecklink_custom_video_frame_set_bytes(cdecklink_custom_video_frame_t *obj, void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer)
+HRESULT cdecklink_custom_video_frame_set_bytes(cdecklink_custom_video_frame_t *obj, void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer, void *context)
 {
-    obj->SetBytes(buffer, finalizer);
+    obj->SetBytes(buffer, finalizer, context);
     return S_OK;
 }
