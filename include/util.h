@@ -11,6 +11,7 @@ extern "C" {
 #define DECKLINK_C_CUSTOM_TYPES_H
 
 typedef void cdecklink_notification_callback_notify_handle;
+typedef void cdecklink_custom_video_frame_t;
 
 #endif //DECKLINK_C_CUSTOM_TYPES_H
 

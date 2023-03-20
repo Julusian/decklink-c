@@ -1,4 +1,5 @@
 #include "./api.h"
+#include "util.h"
 
 #ifdef __cplusplus
 extern "C" {

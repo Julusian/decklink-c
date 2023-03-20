@@ -1,14 +1,6 @@
 #include <memory>
-#include "types.h"
+#include "util.h"
 #include <cstdlib>
-
-#ifndef DECKLINK_C_CUSTOM_TYPES_H
-#define DECKLINK_C_CUSTOM_TYPES_H
-
-typedef IDeckLinkNotificationCallback cdecklink_notification_callback_notify_handle;
-
-#endif //DECKLINK_C_CUSTOM_TYPES_H
-
 #include "types.h"
 #include "include/util.h"
 #include "callbacks.h"

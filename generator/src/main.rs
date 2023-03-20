@@ -13,7 +13,10 @@ mod util;
 
 fn main() {
     // A list of names to skip generation of, eg for special case handling
-    let ignore_names = vec!["cdecklink_notification_subscribe", "cdecklink_notification_unsubscribe"];
+    let ignore_names = vec![
+        "cdecklink_notification_subscribe",
+        "cdecklink_notification_unsubscribe",
+    ];
 
     // Acquire an instance of `Clang`
     let clang = clang::Clang::new().unwrap();
@@ -53,7 +56,7 @@ fn main() {
 
     write_byte(&mut file, b"#include \"common.h\"\n");
     write_byte(&mut file, b"#include \"types.h\"\n");
-//    write_byte(&mut file, b"#include \"util.h\"\n");
+    //    write_byte(&mut file, b"#include \"util.h\"\n");
     write_byte(&mut file, b"\n");
 
     write_byte(&mut file_c, b"#include <atomic>\n");
@@ -82,7 +85,14 @@ fn main() {
 
     misc::process_enum_typedefs(&tu, &mut ctx, &mut file);
     misc::process_enums(&tu, &mut ctx, &mut file);
-    class::process_classes(&tu, &mut ctx, &mut file, &mut file_c, &mut callbacks_h, &mut callbacks_cpp);
+    class::process_classes(
+        &tu,
+        &mut ctx,
+        &mut file,
+        &mut file_c,
+        &mut callbacks_h,
+        &mut callbacks_cpp,
+    );
 
     misc::process_c_functions(&tu, &ctx, &mut file, &mut file_c);
     misc::process_query_interface(&tu, &ctx, &mut file, &mut file_c);

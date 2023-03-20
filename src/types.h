@@ -33,6 +33,3 @@ typedef IDeckLinkStatus cdecklink_status_t;
 typedef IDeckLinkKeyer cdecklink_keyer_t;
 typedef IDeckLinkVideoConversion cdecklink_video_conversion_t;
 typedef IDeckLinkDiscovery cdecklink_discovery_t;
-
-class CustomDecklinkFrame;
-typedef CustomDecklinkFrame cdecklink_custom_video_frame_t;

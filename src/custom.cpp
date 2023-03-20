@@ -1,5 +1,6 @@
-#include "./types.h"
-#include "../include/custom.h"
+#include "util.h"
+#include "include/custom.h"
+#include "types.h"
 
 #include <atomic>
 
