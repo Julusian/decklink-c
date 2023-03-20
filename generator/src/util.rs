@@ -1,4 +1,4 @@
-use crate::heck::SnakeCase;
+use heck::ToSnakeCase;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{LineWriter, Write};
@@ -60,11 +60,10 @@ impl Context {
     pub fn convert_name(&self, name1: &str) -> Option<String> {
         let name = name1.to_string();
         let basic_name = name.replace(|a| !char::is_alphanumeric(a), "");
-        if let Some(a) = self.type_alias.get(&basic_name) {
-            Some(name.replace(&basic_name, a))
-        } else {
-            None
-        }
+
+        self.type_alias
+            .get(&basic_name)
+            .map(|a| name.replace(&basic_name, a))
     }
 
     pub fn convert_type(&self, type_: &clang::Type) -> String {

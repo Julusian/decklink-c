@@ -1,5 +1,5 @@
-use crate::heck::SnakeCase;
 use crate::util::{generate_class_prefix, trim_struct_name, write_byte, write_str, Context};
+use heck::ToSnakeCase;
 use regex::Regex;
 use std::fs::File;
 use std::io::LineWriter;

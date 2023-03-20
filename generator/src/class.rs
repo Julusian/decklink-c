@@ -1,5 +1,5 @@
-use crate::heck::SnakeCase;
 use crate::util::{generate_class_prefix, trim_struct_name, write_byte, write_str, Context};
+use heck::ToSnakeCase;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::LineWriter;
@@ -29,12 +29,7 @@ fn process_callback_class(
         let ret_name = ctx.convert_type(&func.get_result_type().unwrap());
 
         let func_name = format!("{}_{}", prefix, name.to_snake_case());
-        let func_str = format!(
-            "{} {}({})",
-            ret_name,
-            func_name,
-            args.join(", ")
-        );
+        let func_str = format!("{} {}({})", ret_name, func_name, args.join(", "));
         // println!("callback: {}", func_str);
         write_str(file, format!("typedef {};\n", func_str));
 
@@ -108,7 +103,7 @@ fn process_callback_class(
     };
 
     for (i, ch) in children.iter().enumerate() {
-        let (mut args, mut arg_names, _) = fake_ctx.parse_args(&ch, "void");
+        let (mut args, mut arg_names, _) = fake_ctx.parse_args(ch, "void");
         let ret_name = ctx.convert_type(&ch.get_result_type().unwrap());
 
         args.remove(0); // Drop ctx_ from the start
@@ -237,16 +232,11 @@ fn process_normal_class(
         let name = func.get_name().unwrap();
         // println!("    field: {:?} (offset: {} bits)", name, 0);
 
-        let (args, arg_names, callback_class) = ctx.parse_args(&func, &struct_name);
+        let (args, arg_names, callback_class) = ctx.parse_args(&func, struct_name);
         let ret_name = ctx.convert_type(&func.get_result_type().unwrap());
 
         let func_name = format!("{}_{}", prefix, name.to_snake_case());
-        let func_str = format!(
-            "{} {}({})",
-            ret_name,
-            func_name,
-            args.join(", ")
-        );
+        let func_str = format!("{} {}({})", ret_name, func_name, args.join(", "));
 
         if ctx.ignore_names.iter().any(|x| x == &func_name) {
             continue;
@@ -320,7 +310,7 @@ pub fn process_classes(
         .filter(|e| e.get_kind() == clang::EntityKind::ClassDecl && !e.get_children().is_empty())
         .map(|e| {
             let name = e.get_name().unwrap();
-            let prefix = generate_class_prefix(&name).unwrap_or_else(|| "".to_string());
+            let prefix = generate_class_prefix(&name).unwrap_or_default();
 
             (e, name, prefix)
         })
