@@ -11,11 +11,11 @@ class CustomDecklinkFrame : public IDeckLinkVideoFrame
     const BMDPixelFormat pixel_format;
     const BMDFrameFlags flags;
 
-    void *bytes;
-    cdecklink_custom_video_frame_free_bytes *finalizer;
-    void *context;
+    void *bytes = nullptr;
+    cdecklink_custom_video_frame_free_bytes *finalizer = nullptr;
+    void *context = nullptr;
 
-    std::atomic<int> ref_count_{0};
+    std::atomic<int> ref_count_{1};
 
 public:
     CustomDecklinkFrame(long width, long height, long row_bytes, BMDPixelFormat pixel_format, BMDFrameFlags flags)
@@ -87,19 +87,16 @@ public:
 
     // Custom
 
-    void SetBytes(void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer, void *context)
+    HRESULT SetBytes(void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer, void *context)
     {
-        if (finalizer && bytes)
-        {
-            finalizer(bytes, context);
-            bytes = nullptr;
-            finalizer = nullptr;
-            context = nullptr;
-        }
+        // If bytes have already been set, then it is possible that the sdk has a reference
+        if (this->bytes)
+            return S_FALSE;
 
-        bytes = buffer;
-        finalizer = finalizer;
-        context = context;
+        this->bytes = buffer;
+        this->finalizer = finalizer;
+        this->context = context;
+        return S_OK;
     }
 };
 
@@ -142,6 +139,5 @@ HRESULT cdecklink_custom_video_frame_get_bytes(cdecklink_custom_video_frame_t *o
 }
 HRESULT cdecklink_custom_video_frame_set_bytes(cdecklink_custom_video_frame_t *obj, void *buffer, cdecklink_custom_video_frame_free_bytes *finalizer, void *context)
 {
-    obj->SetBytes(buffer, finalizer, context);
-    return S_OK;
+    return obj->SetBytes(buffer, finalizer, context);
 }
