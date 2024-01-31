@@ -1,6 +1,6 @@
 #define DECKLINK_C_TYPES_H
 
-#include "../interop/Linux/include/DeckLinkAPI.h"
+#include "decklink_api.h"
 
 typedef IDeckLinkTimecode cdecklink_timecode_t;
 typedef IDeckLinkDisplayModeIterator cdecklink_display_mode_iterator_t;

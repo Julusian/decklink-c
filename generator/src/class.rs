@@ -237,7 +237,7 @@ fn process_normal_class(
         let name = func.get_name().unwrap();
         // println!("    field: {:?} (offset: {} bits)", name, 0);
 
-        let (args, arg_names, callback_class) = ctx.parse_args(&func, &struct_name);
+        let (args, mut arg_names, callback_class) = ctx.parse_args(&func, &struct_name);
         let ret_name = ctx.convert_type(&func.get_result_type().unwrap());
 
         let func_name = format!("{}_{}", prefix, name.to_snake_case());
@@ -290,6 +290,25 @@ fn process_normal_class(
             write_str(
                 file_c,
                 format!("\treturn obj->{}({});\n", name, exec_params.join(", ")),
+            );
+        } else if name.starts_with("Get") && args.iter().any(|arg| arg.contains("const char **")) {
+            let char_pos = args.iter().position(|arg: &String| arg.contains("const char **")).unwrap() -1;
+            let char_arg_name = arg_names[char_pos].clone();
+            let dl_string_name = format!("{}String", char_arg_name);
+            arg_names[char_pos] = format!("&{}", dl_string_name);
+            write_str(file_c, format!("\tdlstring_t {};\n", dl_string_name));
+            write_str(
+                file_c,
+                format!("\tHRESULT result = obj->{}({});\n", name, arg_names.join(", ")),
+            );
+            write_str(file_c, format!("\tDlToConstChar({}, {});\n", dl_string_name, char_arg_name));
+            write_byte(file_c, b"\treturn result;\n");
+        } else if name.starts_with("SetString") {
+            let pos = arg_names.len() - 1;
+            arg_names[pos] = format!("ConstCharToDl({})", arg_names[pos]);
+            write_str(
+                file_c,
+                format!("\treturn obj->{}({});\n", name, arg_names.join(", ")),
             );
         } else {
             write_str(

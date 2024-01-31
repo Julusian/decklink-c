@@ -2,6 +2,7 @@
 #include "types.h"
 #include "../include/api.h"
 #include "callbacks.h"
+#include "platform.h"
 
 unsigned long cdecklink_timecode_add_ref(cdecklink_timecode_t *obj) {
 	return obj->AddRef();
@@ -20,7 +21,10 @@ HRESULT cdecklink_timecode_get_components(cdecklink_timecode_t *obj, uint8_t * h
 }
 
 HRESULT cdecklink_timecode_get_string(cdecklink_timecode_t *obj, const char ** timecode) {
-	return obj->GetString(timecode);
+	dlstring_t timecodeString;
+	HRESULT result = obj->GetString(&timecodeString);
+	DlToConstChar(timecodeString, timecode);
+	return result;
 }
 
 DecklinkTimecodeFlags cdecklink_timecode_get_flags(cdecklink_timecode_t *obj) {
@@ -54,7 +58,10 @@ unsigned long cdecklink_display_mode_release(cdecklink_display_mode_t *obj) {
 }
 
 HRESULT cdecklink_display_mode_get_name(cdecklink_display_mode_t *obj, const char ** name) {
-	return obj->GetName(name);
+	dlstring_t nameString;
+	HRESULT result = obj->GetName(&nameString);
+	DlToConstChar(nameString, name);
+	return result;
 }
 
 DecklinkDisplayMode cdecklink_display_mode_get_display_mode(cdecklink_display_mode_t *obj) {
@@ -91,11 +98,17 @@ unsigned long cdecklink_device_release(cdecklink_device_t *obj) {
 }
 
 HRESULT cdecklink_device_get_model_name(cdecklink_device_t *obj, const char ** modelName) {
-	return obj->GetModelName(modelName);
+	dlstring_t modelNameString;
+	HRESULT result = obj->GetModelName(&modelNameString);
+	DlToConstChar(modelNameString, modelName);
+	return result;
 }
 
 HRESULT cdecklink_device_get_display_name(cdecklink_device_t *obj, const char ** displayName) {
-	return obj->GetDisplayName(displayName);
+	dlstring_t displayNameString;
+	HRESULT result = obj->GetDisplayName(&displayNameString);
+	DlToConstChar(displayNameString, displayName);
+	return result;
 }
 
 
@@ -132,11 +145,14 @@ HRESULT cdecklink_configuration_get_float(cdecklink_configuration_t *obj, Deckli
 }
 
 HRESULT cdecklink_configuration_set_string(cdecklink_configuration_t *obj, DecklinkConfigurationID cfgID, const char * value) {
-	return obj->SetString(cfgID, value);
+	return obj->SetString(cfgID, ConstCharToDl(value));
 }
 
 HRESULT cdecklink_configuration_get_string(cdecklink_configuration_t *obj, DecklinkConfigurationID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_configuration_write_configuration_to_preferences(cdecklink_configuration_t *obj) {
@@ -177,11 +193,14 @@ HRESULT cdecklink_encoder_configuration_get_float(cdecklink_encoder_configuratio
 }
 
 HRESULT cdecklink_encoder_configuration_set_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char * value) {
-	return obj->SetString(cfgID, value);
+	return obj->SetString(cfgID, ConstCharToDl(value));
 }
 
 HRESULT cdecklink_encoder_configuration_get_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_encoder_configuration_get_bytes(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, void * buffer, uint32_t * bufferSize) {
@@ -262,7 +281,10 @@ HRESULT cdecklink_deck_control_shuttle(cdecklink_deck_control_t *obj, double rat
 }
 
 HRESULT cdecklink_deck_control_get_timecode_string(cdecklink_deck_control_t *obj, const char ** currentTimeCode, DecklinkDeckControlError * error) {
-	return obj->GetTimecodeString(currentTimeCode, error);
+	dlstring_t currentTimeCodeString;
+	HRESULT result = obj->GetTimecodeString(&currentTimeCodeString, error);
+	DlToConstChar(currentTimeCodeString, currentTimeCode);
+	return result;
 }
 
 HRESULT cdecklink_deck_control_get_timecode(cdecklink_deck_control_t *obj, cdecklink_timecode_t ** currentTimecode, DecklinkDeckControlError * error) {
@@ -390,7 +412,10 @@ HRESULT cdecklink_api_information_get_float(cdecklink_api_information_t *obj, De
 }
 
 HRESULT cdecklink_api_information_get_string(cdecklink_api_information_t *obj, DecklinkAPIInformationID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 
@@ -808,7 +833,10 @@ HRESULT cdecklink_video_frame_metadata_extensions_get_flag(cdecklink_video_frame
 }
 
 HRESULT cdecklink_video_frame_metadata_extensions_get_string(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char ** value) {
-	return obj->GetString(metadataID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(metadataID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_video_frame_metadata_extensions_get_bytes(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, void * buffer, uint32_t * bufferSize) {
@@ -1097,7 +1125,10 @@ HRESULT cdecklink_profile_attributes_get_float(cdecklink_profile_attributes_t *o
 }
 
 HRESULT cdecklink_profile_attributes_get_string(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 
@@ -1182,7 +1213,10 @@ HRESULT cdecklink_status_get_float(cdecklink_status_t *obj, DecklinkStatusID sta
 }
 
 HRESULT cdecklink_status_get_string(cdecklink_status_t *obj, DecklinkStatusID statusID, const char ** value) {
-	return obj->GetString(statusID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(statusID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_status_get_bytes(cdecklink_status_t *obj, DecklinkStatusID statusID, void * buffer, uint32_t * bufferSize) {

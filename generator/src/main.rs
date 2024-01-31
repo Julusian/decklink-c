@@ -60,6 +60,7 @@ fn main() {
     write_byte(&mut file_c, b"#include \"types.h\"\n");
     write_byte(&mut file_c, b"#include \"../include/api.h\"\n");
     write_byte(&mut file_c, b"#include \"callbacks.h\"\n");
+    write_byte(&mut file_c, b"#include \"platform.h\"\n");
     write_byte(&mut file_c, b"\n");
 
     write_byte(&mut file, b"#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");

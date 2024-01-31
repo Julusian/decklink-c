@@ -12,6 +12,7 @@ typedef IDeckLinkNotificationCallback cdecklink_notification_callback_notify_han
 #include "types.h"
 #include "include/util.h"
 #include "callbacks.h"
+#include "platform.h"
 
 void cdecklink_free_string(const char *str) {
     free((void *) str);
@@ -22,7 +23,11 @@ HRESULT cdecklink_api_version(cdecklink_iterator_t* it, const char** str) {
     HRESULT result = it->QueryInterface(IID_IDeckLinkAPIInformation, reinterpret_cast<void**>(&info));
     if (FAILED(result)) return result;
 
-    return info->GetString(BMDDeckLinkAPIVersion, str);
+	dlstring_t strString;
+	result = info->GetString(BMDDeckLinkAPIVersion, &strString);
+	DlToConstChar(strString, str);
+
+    return result;
 }
 
 HRESULT cdecklink_device_query_attributes(cdecklink_device_t *obj, cdecklink_profile_attributes_t **dst) {

@@ -18,7 +18,7 @@ pub fn generate_types_files(
     write_byte(file_cpp, b"#define DECKLINK_C_TYPES_H\n\n");
     write_byte(
         file_cpp,
-        b"#include \"../interop/Linux/include/DeckLinkAPI.h\"\n\n",
+        b"#include \"decklink_api.h\"\n\n",
     );
 
     let class_names: Vec<clang::Entity> = tu
@@ -42,6 +42,7 @@ pub fn generate_types_files(
             }
         }
     }
+    write_byte(file_cpp, b"\nclass CustomDecklinkFrame;\ntypedef CustomDecklinkFrame cdecklink_custom_video_frame_t;\n");
 
     write_byte(file_c, b"\n#endif //DECKLINK_C_TYPES_H\n");
     // write_byte(file_cpp, b"\n#endif //DECKLINK_C_TYPES_H\n");
