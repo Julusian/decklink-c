@@ -29,6 +29,7 @@ typedef uint32_t DecklinkDeckControlStatusFlags;
 typedef uint32_t DecklinkDeckControlExportModeOpsFlags;
 typedef uint32_t DecklinkDeckControlError;
 typedef uint32_t DecklinkVideoOutputFlags;
+typedef uint32_t DecklinkSupportedVideoModeFlags;
 typedef uint32_t DecklinkPacketType;
 typedef uint32_t DecklinkFrameFlags;
 typedef uint32_t DecklinkVideoInputFlags;
@@ -41,7 +42,7 @@ typedef uint32_t DecklinkAudioFormat;
 typedef uint32_t DecklinkAudioSampleRate;
 typedef uint32_t DecklinkAudioSampleType;
 typedef uint32_t DecklinkAudioOutputStreamType;
-typedef uint32_t DecklinkDisplayModeSupport;
+typedef uint32_t DecklinkAncillaryPacketFormat;
 typedef uint32_t DecklinkTimecodeFormat;
 typedef uint32_t DecklinkAnalogVideoFlags;
 typedef uint32_t DecklinkAudioOutputAnalogAESSwitch;
@@ -53,13 +54,19 @@ typedef uint32_t DecklinkVideoEncoderFrameCodingMode;
 typedef uint32_t DecklinkDNxHRLevel;
 typedef uint32_t DecklinkLinkConfiguration;
 typedef uint32_t DecklinkDeviceInterface;
+typedef uint32_t DecklinkColorspace;
+typedef uint32_t DecklinkDynamicRange;
+typedef uint32_t DecklinkHDMIInputEDIDID;
 typedef uint32_t DecklinkFrameMetadataID;
-typedef uint32_t DecklinkDuplexMode;
+typedef uint32_t DecklinkEthernetLinkState;
+typedef uint32_t DecklinkProfileID;
+typedef uint32_t DecklinkHDMITimecodePacking;
+typedef uint32_t DecklinkInternalKeyingAncillaryDataSource;
 typedef uint32_t DecklinkAttributeID;
 typedef uint32_t DecklinkAPIInformationID;
 typedef uint32_t DecklinkStatusID;
 typedef uint32_t DecklinkVideoStatusFlags;
-typedef uint32_t DecklinkDuplexStatus;
+typedef uint32_t DecklinkDuplexMode;
 typedef uint32_t DecklinkPanelType;
 typedef uint32_t DecklinkDeviceBusyState;
 typedef uint32_t DecklinkVideoIOSupport;
@@ -71,15 +78,20 @@ enum _DecklinkTimecodeFlags {
 	decklinkTimecodeIsDropFrame = 1,
 	decklinkTimecodeFieldMark = 2,
 	decklinkTimecodeColorFrame = 4,
+	decklinkTimecodeEmbedRecordingTrigger = 8,
+	decklinkTimecodeRecordingTriggered = 16,
 };
 
 enum _DecklinkVideoConnection {
+	decklinkVideoConnectionUnspecified = 0,
 	decklinkVideoConnectionSDI = 1,
 	decklinkVideoConnectionHDMI = 2,
 	decklinkVideoConnectionOpticalSDI = 4,
 	decklinkVideoConnectionComponent = 8,
 	decklinkVideoConnectionComposite = 16,
 	decklinkVideoConnectionSVideo = 32,
+	decklinkVideoConnectionEthernet = 64,
+	decklinkVideoConnectionOpticalEthernet = 128,
 };
 
 enum _DecklinkAudioConnection {
@@ -108,12 +120,19 @@ enum _DecklinkDisplayMode {
 	decklinkModeHD1080p25 = 1215312437,
 	decklinkModeHD1080p2997 = 1215312441,
 	decklinkModeHD1080p30 = 1215312688,
-	decklinkModeHD1080i50 = 1214854448,
-	decklinkModeHD1080i5994 = 1214854457,
-	decklinkModeHD1080i6000 = 1214854704,
+	decklinkModeHD1080p4795 = 1215312951,
+	decklinkModeHD1080p48 = 1215312952,
 	decklinkModeHD1080p50 = 1215313200,
 	decklinkModeHD1080p5994 = 1215313209,
 	decklinkModeHD1080p6000 = 1215313456,
+	decklinkModeHD1080p9590 = 1215314229,
+	decklinkModeHD1080p96 = 1215314230,
+	decklinkModeHD1080p100 = 1215312176,
+	decklinkModeHD1080p11988 = 1215312177,
+	decklinkModeHD1080p120 = 1215312178,
+	decklinkModeHD1080i50 = 1214854448,
+	decklinkModeHD1080i5994 = 1214854457,
+	decklinkModeHD1080i6000 = 1214854704,
 	decklinkModeHD720p50 = 1752184112,
 	decklinkModeHD720p5994 = 1752184121,
 	decklinkModeHD720p60 = 1752184368,
@@ -123,19 +142,84 @@ enum _DecklinkDisplayMode {
 	decklinkMode2kDCI2398 = 845427251,
 	decklinkMode2kDCI24 = 845427252,
 	decklinkMode2kDCI25 = 845427253,
+	decklinkMode2kDCI2997 = 845427257,
+	decklinkMode2kDCI30 = 845427504,
+	decklinkMode2kDCI4795 = 845427767,
+	decklinkMode2kDCI48 = 845427768,
+	decklinkMode2kDCI50 = 845428016,
+	decklinkMode2kDCI5994 = 845428025,
+	decklinkMode2kDCI60 = 845428272,
+	decklinkMode2kDCI9590 = 845429045,
+	decklinkMode2kDCI96 = 845429046,
+	decklinkMode2kDCI100 = 845426992,
+	decklinkMode2kDCI11988 = 845426993,
+	decklinkMode2kDCI120 = 845426994,
 	decklinkMode4K2160p2398 = 879440435,
 	decklinkMode4K2160p24 = 879440436,
 	decklinkMode4K2160p25 = 879440437,
 	decklinkMode4K2160p2997 = 879440441,
 	decklinkMode4K2160p30 = 879440688,
+	decklinkMode4K2160p4795 = 879440951,
+	decklinkMode4K2160p48 = 879440952,
 	decklinkMode4K2160p50 = 879441200,
 	decklinkMode4K2160p5994 = 879441209,
 	decklinkMode4K2160p60 = 879441456,
+	decklinkMode4K2160p9590 = 879442229,
+	decklinkMode4K2160p96 = 879442230,
+	decklinkMode4K2160p100 = 879440176,
+	decklinkMode4K2160p11988 = 879440177,
+	decklinkMode4K2160p120 = 879440178,
 	decklinkMode4kDCI2398 = 878981683,
 	decklinkMode4kDCI24 = 878981684,
 	decklinkMode4kDCI25 = 878981685,
-	decklinkModeCintelRAW = 1920426857,
-	decklinkModeCintelCompressedRAW = 1920426851,
+	decklinkMode4kDCI2997 = 878981689,
+	decklinkMode4kDCI30 = 878981936,
+	decklinkMode4kDCI4795 = 878982199,
+	decklinkMode4kDCI48 = 878982200,
+	decklinkMode4kDCI50 = 878982448,
+	decklinkMode4kDCI5994 = 878982457,
+	decklinkMode4kDCI60 = 878982704,
+	decklinkMode4kDCI9590 = 878983477,
+	decklinkMode4kDCI96 = 878983478,
+	decklinkMode4kDCI100 = 878981424,
+	decklinkMode4kDCI11988 = 878981425,
+	decklinkMode4kDCI120 = 878981426,
+	decklinkMode8K4320p2398 = 946549299,
+	decklinkMode8K4320p24 = 946549300,
+	decklinkMode8K4320p25 = 946549301,
+	decklinkMode8K4320p2997 = 946549305,
+	decklinkMode8K4320p30 = 946549552,
+	decklinkMode8K4320p4795 = 946549815,
+	decklinkMode8K4320p48 = 946549816,
+	decklinkMode8K4320p50 = 946550064,
+	decklinkMode8K4320p5994 = 946550073,
+	decklinkMode8K4320p60 = 946550320,
+	decklinkMode8kDCI2398 = 946090547,
+	decklinkMode8kDCI24 = 946090548,
+	decklinkMode8kDCI25 = 946090549,
+	decklinkMode8kDCI2997 = 946090553,
+	decklinkMode8kDCI30 = 946090800,
+	decklinkMode8kDCI4795 = 946091063,
+	decklinkMode8kDCI48 = 946091064,
+	decklinkMode8kDCI50 = 946091312,
+	decklinkMode8kDCI5994 = 946091321,
+	decklinkMode8kDCI60 = 946091568,
+	decklinkMode640x480p60 = 1986486582,
+	decklinkMode800x600p60 = 1937139510,
+	decklinkMode1440x900p50 = 2004379445,
+	decklinkMode1440x900p60 = 2004379446,
+	decklinkMode1440x1080p50 = 1937270581,
+	decklinkMode1440x1080p60 = 1937270582,
+	decklinkMode1600x1200p50 = 1970825013,
+	decklinkMode1600x1200p60 = 1970825014,
+	decklinkMode1920x1200p50 = 2004187189,
+	decklinkMode1920x1200p60 = 2004187190,
+	decklinkMode1920x1440p50 = 825832501,
+	decklinkMode1920x1440p60 = 825832502,
+	decklinkMode2560x1440p50 = 2003920949,
+	decklinkMode2560x1440p60 = 2003920950,
+	decklinkMode2560x1600p50 = 2003925045,
+	decklinkMode2560x1600p60 = 2003925046,
 	decklinkModeUnknown = 1769303659,
 };
 
@@ -148,6 +232,7 @@ enum _DecklinkFieldDominance {
 };
 
 enum _DecklinkPixelFormat {
+	decklinkFormatUnspecified = 0,
 	decklinkFormat8BitYUV = 846624121,
 	decklinkFormat10BitYUV = 1983000880,
 	decklinkFormat8BitARGB = 32,
@@ -159,14 +244,13 @@ enum _DecklinkPixelFormat {
 	decklinkFormat10BitRGBX = 1378955362,
 	decklinkFormatH265 = 1751479857,
 	decklinkFormatDNxHR = 1096180840,
-	decklinkFormat12BitRAWGRBG = 1915826800,
-	decklinkFormat12BitRAWJPEG = 1915827824,
 };
 
 enum _DecklinkDisplayModeFlags {
 	decklinkDisplayModeSupports3D = 1,
 	decklinkDisplayModeColorspaceRec601 = 2,
 	decklinkDisplayModeColorspaceRec709 = 4,
+	decklinkDisplayModeColorspaceRec2020 = 8,
 };
 
 enum _DecklinkConfigurationID {
@@ -174,8 +258,9 @@ enum _DecklinkConfigurationID {
 	decklinkConfigHDMI3DPackingFormat = 862220390,
 	decklinkConfigBypass = 1652125811,
 	decklinkConfigClockTimingAdjustment = 1668571492,
-	decklinkConfigDuplexMode = 1685418104,
 	decklinkConfigAnalogAudioConsumerLevels = 1633772396,
+	decklinkConfigSwapHDMICh3AndCh4OnInput = 1751724852,
+	decklinkConfigSwapHDMICh3AndCh4OnOutput = 1752118068,
 	decklinkConfigFieldFlickerRemoval = 1717855858,
 	decklinkConfigHD1080p24ToHD1080i5994Conversion = 1953445177,
 	decklinkConfig444SDIVideoOutput = 875836527,
@@ -183,15 +268,20 @@ enum _DecklinkConfigurationID {
 	decklinkConfigLowLatencyVideoOutput = 1819047535,
 	decklinkConfigDownConversionOnAllAnalogOutput = 1667326319,
 	decklinkConfigSMPTELevelAOutput = 1936553057,
+	decklinkConfigRec2020Output = 1919247154,
+	decklinkConfigQuadLinkSDIVideoOutputSquareDivisionSplit = 1396986195,
 	decklinkConfigOutput1080pAsPsF = 1885761650,
 	decklinkConfigVideoOutputConnection = 1987011438,
 	decklinkConfigVideoOutputConversionMode = 1987011437,
 	decklinkConfigAnalogVideoOutputFlags = 1635151718,
 	decklinkConfigReferenceInputTimingOffset = 1735159668,
+	decklinkConfigReferenceOutputMode = 1735151469,
 	decklinkConfigVideoOutputIdleOperation = 1987012975,
 	decklinkConfigDefaultVideoOutputMode = 1685483373,
 	decklinkConfigDefaultVideoOutputModeFlags = 1685483366,
 	decklinkConfigSDIOutputLinkConfiguration = 1936682083,
+	decklinkConfigHDMITimecodePacking = 1752461419,
+	decklinkConfigPlaybackGroup = 1886152562,
 	decklinkConfigVideoOutputComponentLumaGain = 1868786791,
 	decklinkConfigVideoOutputComponentChromaBlueGain = 1868784482,
 	decklinkConfigVideoOutputComponentChromaRedGain = 1868784498,
@@ -211,6 +301,7 @@ enum _DecklinkConfigurationID {
 	decklinkConfigVANCSourceLine2Mapping = 1987275826,
 	decklinkConfigVANCSourceLine3Mapping = 1987275827,
 	decklinkConfigCapturePassThroughMode = 1668314221,
+	decklinkConfigCaptureGroup = 1668310898,
 	decklinkConfigVideoInputComponentLumaGain = 1768123495,
 	decklinkConfigVideoInputComponentChromaBlueGain = 1768121186,
 	decklinkConfigVideoInputComponentChromaRedGain = 1768121202,
@@ -218,6 +309,7 @@ enum _DecklinkConfigurationID {
 	decklinkConfigVideoInputCompositeChromaGain = 1768514407,
 	decklinkConfigVideoInputSVideoLumaGain = 1769172071,
 	decklinkConfigVideoInputSVideoChromaGain = 1769169767,
+	decklinkConfigInternalKeyingAncillaryDataSource = 1768644979,
 	decklinkConfigMicrophonePhantomPower = 1836083312,
 	decklinkConfigAudioInputConnection = 1634296686,
 	decklinkConfigAnalogAudioInputScaleChannel1 = 1634300721,
@@ -233,6 +325,21 @@ enum _DecklinkConfigurationID {
 	decklinkConfigAnalogAudioOutputScaleChannel4 = 1634693940,
 	decklinkConfigDigitalAudioOutputScale = 1684107123,
 	decklinkConfigHeadphoneVolume = 1752592236,
+	decklinkConfigEthernetUseDHCP = 1145586512,
+	decklinkConfigEthernetPTPFollowerOnly = 1347702886,
+	decklinkConfigEthernetPTPUseUDPEncapsulation = 1347702869,
+	decklinkConfigEthernetPTPPriority1 = 1347702833,
+	decklinkConfigEthernetPTPPriority2 = 1347702834,
+	decklinkConfigEthernetPTPDomain = 1347702852,
+	decklinkConfigEthernetStaticLocalIPAddress = 1853057392,
+	decklinkConfigEthernetStaticSubnetMask = 1853059949,
+	decklinkConfigEthernetStaticGatewayIPAddress = 1853056887,
+	decklinkConfigEthernetStaticPrimaryDNS = 1853059172,
+	decklinkConfigEthernetStaticSecondaryDNS = 1853059940,
+	decklinkConfigEthernetVideoOutputAddress = 1852793206,
+	decklinkConfigEthernetAudioOutputAddress = 1852793185,
+	decklinkConfigEthernetAncillaryOutputAddress = 1852793153,
+	decklinkConfigEthernetAudioOutputChannelOrder = 1667326831,
 	decklinkConfigDeviceInformationLabel = 1684630625,
 	decklinkConfigDeviceInformationSerialNumber = 1684632430,
 	decklinkConfigDeviceInformationCompany = 1684628335,
@@ -331,6 +438,18 @@ enum _DecklinkVideoOutputFlags {
 	decklinkVideoOutputVITC = 2,
 	decklinkVideoOutputRP188 = 4,
 	decklinkVideoOutputDualStream3D = 16,
+	decklinkVideoOutputSynchronizeToPlaybackGroup = 64,
+};
+
+enum _DecklinkSupportedVideoModeFlags {
+	decklinkSupportedVideoModeDefault = 0,
+	decklinkSupportedVideoModeKeying = 1,
+	decklinkSupportedVideoModeDualStream3D = 2,
+	decklinkSupportedVideoModeSDISingleLink = 4,
+	decklinkSupportedVideoModeSDIDualLink = 8,
+	decklinkSupportedVideoModeSDIQuadLink = 16,
+	decklinkSupportedVideoModeInAnyProfile = 32,
+	decklinkSupportedVideoModePsF = 64,
 };
 
 enum _DecklinkPacketType {
@@ -342,7 +461,7 @@ enum _DecklinkFrameFlags {
 	decklinkFrameFlagDefault = 0,
 	decklinkFrameFlagFlipVertical = 1,
 	decklinkFrameContainsHDRMetadata = 2,
-	decklinkFrameContainsCintelMetadata = 4,
+	decklinkFrameCapturedAsPsF = 1073741824,
 	decklinkFrameHasNoInputSource = 2147483648,
 };
 
@@ -350,6 +469,7 @@ enum _DecklinkVideoInputFlags {
 	decklinkVideoInputFlagDefault = 0,
 	decklinkVideoInputEnableFormatDetection = 1,
 	decklinkVideoInputDualStream3D = 2,
+	decklinkVideoInputSynchronizeToCaptureGroup = 4,
 };
 
 enum _DecklinkVideoInputFormatChangedEvents {
@@ -362,6 +482,9 @@ enum _DecklinkDetectedVideoInputFormatFlags {
 	decklinkDetectedVideoInputYCbCr422 = 1,
 	decklinkDetectedVideoInputRGB444 = 2,
 	decklinkDetectedVideoInputDualStream3D = 4,
+	decklinkDetectedVideoInput12BitDepth = 8,
+	decklinkDetectedVideoInput10BitDepth = 16,
+	decklinkDetectedVideoInput8BitDepth = 32,
 };
 
 enum _DecklinkCapturePassthroughMode {
@@ -378,6 +501,7 @@ enum _DecklinkOutputFrameCompletionResult {
 };
 
 enum _DecklinkReferenceStatus {
+	decklinkReferenceUnlocked = 0,
 	decklinkReferenceNotSupportedByHardware = 1,
 	decklinkReferenceLocked = 2,
 };
@@ -401,16 +525,17 @@ enum _DecklinkAudioOutputStreamType {
 	decklinkAudioOutputStreamTimestamped = 2,
 };
 
-enum _DecklinkDisplayModeSupport {
-	decklinkDisplayModeNotSupported = 0,
-	decklinkDisplayModeSupported = 1,
-	decklinkDisplayModeSupportedWithConversion = 2,
+enum _DecklinkAncillaryPacketFormat {
+	decklinkAncillaryPacketFormatUInt8 = 1969827896,
+	decklinkAncillaryPacketFormatUInt16 = 1969828150,
+	decklinkAncillaryPacketFormatYCbCr10 = 1983000880,
 };
 
 enum _DecklinkTimecodeFormat {
 	decklinkTimecodeRP188VITC1 = 1919972913,
 	decklinkTimecodeRP188VITC2 = 1919955250,
 	decklinkTimecodeRP188LTC = 1919970420,
+	decklinkTimecodeRP188HighFrameRate = 1919969394,
 	decklinkTimecodeRP188Any = 1919955256,
 	decklinkTimecodeVITC = 1986622563,
 	decklinkTimecodeVITCField2 = 1986622514,
@@ -493,39 +618,25 @@ enum _DecklinkDeviceInterface {
 	decklinkDeviceInterfaceThunderbolt = 1953002862,
 };
 
+enum _DecklinkColorspace {
+	decklinkColorspaceRec601 = 1916153905,
+	decklinkColorspaceRec709 = 1916219449,
+	decklinkColorspaceRec2020 = 842019376,
+};
+
+enum _DecklinkDynamicRange {
+	decklinkDynamicRangeSDR = 0,
+	decklinkDynamicRangeHDRStaticPQ = 536870912,
+	decklinkDynamicRangeHDRStaticHLG = 1073741824,
+};
+
+enum _DecklinkHDMIInputEDIDID {
+	decklinkHDMIInputEDIDDynamicRange = 1212761209,
+};
+
 enum _DecklinkFrameMetadataID {
+	decklinkFrameMetadataColorspace = 1668509795,
 	decklinkFrameMetadataHDRElectroOpticalTransferFunc = 1701803110,
-	decklinkFrameMetadataCintelFilmType = 1667658873,
-	decklinkFrameMetadataCintelFilmGauge = 1667655521,
-	decklinkFrameMetadataCintelOffsetDetectedHorizontal = 1868850792,
-	decklinkFrameMetadataCintelOffsetDetectedVertical = 1868850806,
-	decklinkFrameMetadataCintelKeykodeLow = 1667984236,
-	decklinkFrameMetadataCintelKeykodeHigh = 1667984232,
-	decklinkFrameMetadataCintelTile1Size = 1668559219,
-	decklinkFrameMetadataCintelTile2Size = 1668559475,
-	decklinkFrameMetadataCintelTile3Size = 1668559731,
-	decklinkFrameMetadataCintelTile4Size = 1668559987,
-	decklinkFrameMetadataCintelImageWidth = 1230459000,
-	decklinkFrameMetadataCintelImageHeight = 1229475960,
-	decklinkFrameMetadataCintelLinearMaskingRedInRed = 1836214642,
-	decklinkFrameMetadataCintelLinearMaskingGreenInRed = 1835493746,
-	decklinkFrameMetadataCintelLinearMaskingBlueInRed = 1835166066,
-	decklinkFrameMetadataCintelLinearMaskingRedInGreen = 1836214631,
-	decklinkFrameMetadataCintelLinearMaskingGreenInGreen = 1835493735,
-	decklinkFrameMetadataCintelLinearMaskingBlueInGreen = 1835166055,
-	decklinkFrameMetadataCintelLinearMaskingRedInBlue = 1836214626,
-	decklinkFrameMetadataCintelLinearMaskingGreenInBlue = 1835493730,
-	decklinkFrameMetadataCintelLinearMaskingBlueInBlue = 1835166050,
-	decklinkFrameMetadataCintelLogMaskingRedInRed = 1835823730,
-	decklinkFrameMetadataCintelLogMaskingGreenInRed = 1835820914,
-	decklinkFrameMetadataCintelLogMaskingBlueInRed = 1835819634,
-	decklinkFrameMetadataCintelLogMaskingRedInGreen = 1835823719,
-	decklinkFrameMetadataCintelLogMaskingGreenInGreen = 1835820903,
-	decklinkFrameMetadataCintelLogMaskingBlueInGreen = 1835819623,
-	decklinkFrameMetadataCintelLogMaskingRedInBlue = 1835823714,
-	decklinkFrameMetadataCintelLogMaskingGreenInBlue = 1835820898,
-	decklinkFrameMetadataCintelLogMaskingBlueInBlue = 1835819618,
-	decklinkFrameMetadataCintelFilmFrameRate = 1667655282,
 	decklinkFrameMetadataHDRDisplayPrimariesRedX = 1751413368,
 	decklinkFrameMetadataHDRDisplayPrimariesRedY = 1751413369,
 	decklinkFrameMetadataHDRDisplayPrimariesGreenX = 1751410552,
@@ -538,25 +649,36 @@ enum _DecklinkFrameMetadataID {
 	decklinkFrameMetadataHDRMinDisplayMasteringLuminance = 1752000876,
 	decklinkFrameMetadataHDRMaximumContentLightLevel = 1835232364,
 	decklinkFrameMetadataHDRMaximumFrameAverageLightLevel = 1717660780,
-	decklinkFrameMetadataCintelOffsetToApplyHorizontal = 1869898088,
-	decklinkFrameMetadataCintelOffsetToApplyVertical = 1869898102,
-	decklinkFrameMetadataCintelGainRed = 1281774180,
-	decklinkFrameMetadataCintelGainGreen = 1281771378,
-	decklinkFrameMetadataCintelGainBlue = 1281770092,
-	decklinkFrameMetadataCintelLiftRed = 1198412388,
-	decklinkFrameMetadataCintelLiftGreen = 1198409586,
-	decklinkFrameMetadataCintelLiftBlue = 1198408300,
 };
 
-enum _DecklinkDuplexMode {
-	decklinkDuplexModeFull = 1717859696,
-	decklinkDuplexModeHalf = 1751414128,
+enum _DecklinkEthernetLinkState {
+	decklinkEthernetLinkStateDisconnected = 1701602419,
+	decklinkEthernetLinkStateConnectedUnbound = 1701602165,
+	decklinkEthernetLinkStateConnectedBound = 1701602146,
+};
+
+enum _DecklinkProfileID {
+	decklinkProfileOneSubDeviceFullDuplex = 828663396,
+	decklinkProfileOneSubDeviceHalfDuplex = 828663908,
+	decklinkProfileTwoSubDevicesFullDuplex = 845440612,
+	decklinkProfileTwoSubDevicesHalfDuplex = 845441124,
+	decklinkProfileFourSubDevicesHalfDuplex = 878995556,
+};
+
+enum _DecklinkHDMITimecodePacking {
+	decklinkHDMITimecodePackingIEEEOUI000085 = 34048,
+	decklinkHDMITimecodePackingIEEEOUI080046 = 134235649,
+	decklinkHDMITimecodePackingIEEEOUI5CF9F0 = 1559883779,
+};
+
+enum _DecklinkInternalKeyingAncillaryDataSource {
+	decklinkInternalKeyingUsesAncillaryDataFromInputSignal = 1768644969,
+	decklinkInternalKeyingUsesAncillaryDataFromKeyFrame = 1768644971,
 };
 
 enum _DecklinkAttributeID {
 	decklinkSupportsInternalKeying = 1801812329,
 	decklinkSupportsExternalKeying = 1801812325,
-	decklinkSupportsHDKeying = 1801812328,
 	decklinkSupportsInputFormatDetection = 1768842852,
 	decklinkHasReferenceInput = 1752328558,
 	decklinkHasSerialPort = 1752395892,
@@ -565,15 +687,20 @@ enum _DecklinkAttributeID {
 	decklinkHasVideoInputAntiAliasingFilter = 1633773164,
 	decklinkHasBypass = 1652125811,
 	decklinkSupportsClockTimingAdjustment = 1668571492,
-	decklinkSupportsFullDuplex = 1717859696,
 	decklinkSupportsFullFrameReferenceInputTimingOffset = 1718774126,
 	decklinkSupportsSMPTELevelAOutput = 1819700321,
+	decklinkSupportsAutoSwitchingPPsFOnInput = 1634759526,
 	decklinkSupportsDualLinkSDI = 1935961203,
 	decklinkSupportsQuadLinkSDI = 1936813171,
 	decklinkSupportsIdleOutput = 1768189813,
+	decklinkVANCRequires10BitYUVVideoFrames = 1986621273,
 	decklinkHasLTCTimecodeInput = 1751938147,
-	decklinkSupportsDuplexModeConfiguration = 1685418104,
 	decklinkSupportsHDRMetadata = 1751413357,
+	decklinkSupportsColorspaceMetadata = 1668113780,
+	decklinkSupportsHDMITimecode = 1752459629,
+	decklinkSupportsHighFrameRateTimecode = 1212568148,
+	decklinkSupportsSynchronizeToCaptureGroup = 1937007463,
+	decklinkSupportsSynchronizeToPlaybackGroup = 1937010791,
 	decklinkMaximumAudioChannels = 1835098984,
 	decklinkMaximumAnalogAudioInputChannels = 1767990120,
 	decklinkMaximumAnalogAudioOutputChannels = 1633772392,
@@ -593,7 +720,10 @@ enum _DecklinkAttributeID {
 	decklinkAudioInputXLRChannelCount = 1634302051,
 	decklinkAudioOutputRCAChannelCount = 1634693731,
 	decklinkAudioOutputXLRChannelCount = 1634695267,
-	decklinkPairedDevicePersistentID = 1886415204,
+	decklinkProfileID = 1886546276,
+	decklinkDuplex = 1685418104,
+	decklinkMinimumPrerollFrames = 1836085862,
+	decklinkSupportedDynamicRange = 1937073266,
 	decklinkVideoInputGainMinimum = 1986619245,
 	decklinkVideoInputGainMaximum = 1986619256,
 	decklinkVideoOutputGainMinimum = 1987012461,
@@ -605,6 +735,7 @@ enum _DecklinkAttributeID {
 	decklinkDisplayName = 1685287022,
 	decklinkModelName = 1835297902,
 	decklinkDeviceHandle = 1684371048,
+	decklinkEthernetMACAddress = 1699561795,
 };
 
 enum _DecklinkAPIInformationID {
@@ -613,22 +744,38 @@ enum _DecklinkAPIInformationID {
 
 enum _DecklinkStatusID {
 	decklinkStatusDetectedVideoInputMode = 1685481837,
-	decklinkStatusDetectedVideoInputFlags = 1685481830,
+	decklinkStatusDetectedVideoInputFormatFlags = 1685481062,
+	decklinkStatusDetectedVideoInputFieldDominance = 1685481060,
+	decklinkStatusDetectedVideoInputColorspace = 1685283692,
+	decklinkStatusDetectedVideoInputDynamicRange = 1685283954,
+	decklinkStatusDetectedSDILinkConfiguration = 1685285987,
 	decklinkStatusCurrentVideoInputMode = 1668704621,
 	decklinkStatusCurrentVideoInputPixelFormat = 1668704624,
 	decklinkStatusCurrentVideoInputFlags = 1668704614,
 	decklinkStatusCurrentVideoOutputMode = 1668706157,
 	decklinkStatusCurrentVideoOutputFlags = 1668706150,
+	decklinkStatusEthernetLink = 1936026739,
+	decklinkStatusEthernetLinkMbps = 1936028528,
 	decklinkStatusPCIExpressLinkWidth = 1886873956,
 	decklinkStatusPCIExpressLinkSpeed = 1886154347,
 	decklinkStatusLastVideoOutputPixelFormat = 1869638008,
 	decklinkStatusReferenceSignalMode = 1919247981,
 	decklinkStatusReferenceSignalFlags = 1919247974,
-	decklinkStatusDuplexMode = 1685418104,
 	decklinkStatusBusy = 1651864441,
 	decklinkStatusInterchangeablePanelType = 1768124532,
+	decklinkStatusDeviceTemperature = 1685351792,
 	decklinkStatusVideoInputSignalLocked = 1986622316,
 	decklinkStatusReferenceSignalLocked = 1919247980,
+	decklinkStatusEthernetLocalIPAddress = 1936025968,
+	decklinkStatusEthernetSubnetMask = 1936028525,
+	decklinkStatusEthernetGatewayIPAddress = 1936025463,
+	decklinkStatusEthernetPrimaryDNS = 1936027748,
+	decklinkStatusEthernetSecondaryDNS = 1936028516,
+	decklinkStatusEthernetPTPGrandmasterIdentity = 1936746852,
+	decklinkStatusEthernetVideoOutputAddress = 1936679286,
+	decklinkStatusEthernetAudioOutputAddress = 1936679265,
+	decklinkStatusEthernetAncillaryOutputAddress = 1936679233,
+	decklinkStatusEthernetAudioInputChannelOrder = 1935762287,
 	decklinkStatusReceivedEDID = 1701079396,
 };
 
@@ -637,11 +784,11 @@ enum _DecklinkVideoStatusFlags {
 	decklinkVideoStatusDualStream3D = 2,
 };
 
-enum _DecklinkDuplexStatus {
-	decklinkDuplexStatusFullDuplex = 1717859696,
-	decklinkDuplexStatusHalfDuplex = 1751414128,
-	decklinkDuplexStatusSimplex = 1936747640,
-	decklinkDuplexStatusInactive = 1768841571,
+enum _DecklinkDuplexMode {
+	decklinkDuplexFull = 1685612149,
+	decklinkDuplexHalf = 1685612641,
+	decklinkDuplexSimplex = 1685615472,
+	decklinkDuplexInactive = 1685612910,
 };
 
 enum _DecklinkPanelType {
@@ -694,6 +841,9 @@ typedef HRESULT cdecklink_audio_output_callback_render_audio_samples(void *obj, 
 typedef HRESULT cdecklink_screen_preview_callback_draw_frame(void *obj, cdecklink_video_frame_t * theFrame);
 
 typedef HRESULT cdecklink_notification_callback_notify(void *obj, DecklinkNotifications topic, uint64_t param1, uint64_t param2);
+
+typedef HRESULT cdecklink_profile_callback_profile_changing(void *obj, cdecklink_profile_t * profileToBeActivated, bool streamsWillBeForcedToStop);
+typedef HRESULT cdecklink_profile_callback_profile_activated(void *obj, cdecklink_profile_t * activatedProfile);
 
 typedef HRESULT cdecklink_device_notification_callback_deck_link_device_arrived(void *obj, cdecklink_device_t * deckLinkDevice);
 typedef HRESULT cdecklink_device_notification_callback_deck_link_device_removed(void *obj, cdecklink_device_t * deckLinkDevice);
@@ -805,7 +955,8 @@ HRESULT cdecklink_api_information_get_string(cdecklink_api_information_t *obj, D
 
 unsigned long cdecklink_output_add_ref(cdecklink_output_t *obj);
 unsigned long cdecklink_output_release(cdecklink_output_t *obj);
-HRESULT cdecklink_output_does_support_video_mode(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoOutputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode);
+HRESULT cdecklink_output_does_support_video_mode(cdecklink_output_t *obj, DecklinkVideoConnection connection, DecklinkDisplayMode requestedMode, DecklinkPixelFormat requestedPixelFormat, DecklinkVideoOutputConversionMode conversionMode, DecklinkSupportedVideoModeFlags flags, DecklinkDisplayMode * actualMode, bool * supported);
+HRESULT cdecklink_output_get_display_mode(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, cdecklink_display_mode_t ** resultDisplayMode);
 HRESULT cdecklink_output_get_display_mode_iterator(cdecklink_output_t *obj, cdecklink_display_mode_iterator_t ** iterator);
 HRESULT cdecklink_output_set_screen_preview_callback(cdecklink_output_t *obj, void *ctx, cdecklink_screen_preview_callback_draw_frame* cb0);
 HRESULT cdecklink_output_enable_video_output(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, DecklinkVideoOutputFlags flags);
@@ -836,7 +987,8 @@ HRESULT cdecklink_output_get_frame_completion_reference_timestamp(cdecklink_outp
 
 unsigned long cdecklink_input_add_ref(cdecklink_input_t *obj);
 unsigned long cdecklink_input_release(cdecklink_input_t *obj);
-HRESULT cdecklink_input_does_support_video_mode(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode);
+HRESULT cdecklink_input_does_support_video_mode(cdecklink_input_t *obj, DecklinkVideoConnection connection, DecklinkDisplayMode requestedMode, DecklinkPixelFormat requestedPixelFormat, DecklinkVideoInputConversionMode conversionMode, DecklinkSupportedVideoModeFlags flags, DecklinkDisplayMode * actualMode, bool * supported);
+HRESULT cdecklink_input_get_display_mode(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, cdecklink_display_mode_t ** resultDisplayMode);
 HRESULT cdecklink_input_get_display_mode_iterator(cdecklink_input_t *obj, cdecklink_display_mode_iterator_t ** iterator);
 HRESULT cdecklink_input_set_screen_preview_callback(cdecklink_input_t *obj, void *ctx, cdecklink_screen_preview_callback_draw_frame* cb0);
 HRESULT cdecklink_input_enable_video_input(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags);
@@ -853,9 +1005,16 @@ HRESULT cdecklink_input_flush_streams(cdecklink_input_t *obj);
 HRESULT cdecklink_input_set_callback(cdecklink_input_t *obj, void *ctx, cdecklink_input_callback_video_input_format_changed* cb0, cdecklink_input_callback_video_input_frame_arrived* cb1);
 HRESULT cdecklink_input_get_hardware_reference_clock(cdecklink_input_t *obj, DecklinkTimeScale desiredTimeScale, DecklinkTimeValue * hardwareTime, DecklinkTimeValue * timeInFrame, DecklinkTimeValue * ticksPerFrame);
 
+unsigned long cdecklink_hdmi_input_edid_add_ref(cdecklink_hdmi_input_edid_t *obj);
+unsigned long cdecklink_hdmi_input_edid_release(cdecklink_hdmi_input_edid_t *obj);
+HRESULT cdecklink_hdmi_input_edid_set_int(cdecklink_hdmi_input_edid_t *obj, DecklinkHDMIInputEDIDID cfgID, int64_t value);
+HRESULT cdecklink_hdmi_input_edid_get_int(cdecklink_hdmi_input_edid_t *obj, DecklinkHDMIInputEDIDID cfgID, int64_t * value);
+HRESULT cdecklink_hdmi_input_edid_write_to_edid(cdecklink_hdmi_input_edid_t *obj);
+
 unsigned long cdecklink_encoder_input_add_ref(cdecklink_encoder_input_t *obj);
 unsigned long cdecklink_encoder_input_release(cdecklink_encoder_input_t *obj);
-HRESULT cdecklink_encoder_input_does_support_video_mode(cdecklink_encoder_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode);
+HRESULT cdecklink_encoder_input_does_support_video_mode(cdecklink_encoder_input_t *obj, DecklinkVideoConnection connection, DecklinkDisplayMode requestedMode, DecklinkPixelFormat requestedCodec, uint32_t requestedCodecProfile, DecklinkSupportedVideoModeFlags flags, bool * supported);
+HRESULT cdecklink_encoder_input_get_display_mode(cdecklink_encoder_input_t *obj, DecklinkDisplayMode displayMode, cdecklink_display_mode_t ** resultDisplayMode);
 HRESULT cdecklink_encoder_input_get_display_mode_iterator(cdecklink_encoder_input_t *obj, cdecklink_display_mode_iterator_t ** iterator);
 HRESULT cdecklink_encoder_input_enable_video_input(cdecklink_encoder_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags);
 HRESULT cdecklink_encoder_input_disable_video_input(cdecklink_encoder_input_t *obj);
@@ -902,12 +1061,33 @@ HRESULT cdecklink_video_frame_metadata_extensions_get_int(cdecklink_video_frame_
 HRESULT cdecklink_video_frame_metadata_extensions_get_float(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, double * value);
 HRESULT cdecklink_video_frame_metadata_extensions_get_flag(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, bool * value);
 HRESULT cdecklink_video_frame_metadata_extensions_get_string(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char ** value);
+HRESULT cdecklink_video_frame_metadata_extensions_get_bytes(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, void * buffer, uint32_t * bufferSize);
 
 cdecklink_video_frame_t *cdecklink_video_input_frame_to_video_frame(cdecklink_video_input_frame_t *obj);
 unsigned long cdecklink_video_input_frame_add_ref(cdecklink_video_input_frame_t *obj);
 unsigned long cdecklink_video_input_frame_release(cdecklink_video_input_frame_t *obj);
 HRESULT cdecklink_video_input_frame_get_stream_time(cdecklink_video_input_frame_t *obj, DecklinkTimeValue * frameTime, DecklinkTimeValue * frameDuration, DecklinkTimeScale timeScale);
 HRESULT cdecklink_video_input_frame_get_hardware_reference_timestamp(cdecklink_video_input_frame_t *obj, DecklinkTimeScale timeScale, DecklinkTimeValue * frameTime, DecklinkTimeValue * frameDuration);
+
+unsigned long cdecklink_ancillary_packet_add_ref(cdecklink_ancillary_packet_t *obj);
+unsigned long cdecklink_ancillary_packet_release(cdecklink_ancillary_packet_t *obj);
+HRESULT cdecklink_ancillary_packet_get_bytes(cdecklink_ancillary_packet_t *obj, DecklinkAncillaryPacketFormat format, const void ** data, uint32_t * size);
+uint8_t cdecklink_ancillary_packet_get_did(cdecklink_ancillary_packet_t *obj);
+uint8_t cdecklink_ancillary_packet_get_sdid(cdecklink_ancillary_packet_t *obj);
+uint32_t cdecklink_ancillary_packet_get_line_number(cdecklink_ancillary_packet_t *obj);
+uint8_t cdecklink_ancillary_packet_get_data_stream_index(cdecklink_ancillary_packet_t *obj);
+
+unsigned long cdecklink_ancillary_packet_iterator_add_ref(cdecklink_ancillary_packet_iterator_t *obj);
+unsigned long cdecklink_ancillary_packet_iterator_release(cdecklink_ancillary_packet_iterator_t *obj);
+HRESULT cdecklink_ancillary_packet_iterator_next(cdecklink_ancillary_packet_iterator_t *obj, cdecklink_ancillary_packet_t ** packet);
+
+unsigned long cdecklink_video_frame_ancillary_packets_add_ref(cdecklink_video_frame_ancillary_packets_t *obj);
+unsigned long cdecklink_video_frame_ancillary_packets_release(cdecklink_video_frame_ancillary_packets_t *obj);
+HRESULT cdecklink_video_frame_ancillary_packets_get_packet_iterator(cdecklink_video_frame_ancillary_packets_t *obj, cdecklink_ancillary_packet_iterator_t ** iterator);
+HRESULT cdecklink_video_frame_ancillary_packets_get_first_packet_by_id(cdecklink_video_frame_ancillary_packets_t *obj, uint8_t DID, uint8_t SDID, cdecklink_ancillary_packet_t ** packet);
+HRESULT cdecklink_video_frame_ancillary_packets_attach_packet(cdecklink_video_frame_ancillary_packets_t *obj, cdecklink_ancillary_packet_t * packet);
+HRESULT cdecklink_video_frame_ancillary_packets_detach_packet(cdecklink_video_frame_ancillary_packets_t *obj, cdecklink_ancillary_packet_t * packet);
+HRESULT cdecklink_video_frame_ancillary_packets_detach_all_packets(cdecklink_video_frame_ancillary_packets_t *obj);
 
 unsigned long cdecklink_video_frame_ancillary_add_ref(cdecklink_video_frame_ancillary_t *obj);
 unsigned long cdecklink_video_frame_ancillary_release(cdecklink_video_frame_ancillary_t *obj);
@@ -957,12 +1137,29 @@ HRESULT cdecklink_gl_screen_preview_helper_set3_d_preview_format(cdecklink_gl_sc
 unsigned long cdecklink_notification_add_ref(cdecklink_notification_t *obj);
 unsigned long cdecklink_notification_release(cdecklink_notification_t *obj);
 
-unsigned long cdecklink_attributes_add_ref(cdecklink_attributes_t *obj);
-unsigned long cdecklink_attributes_release(cdecklink_attributes_t *obj);
-HRESULT cdecklink_attributes_get_flag(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, bool * value);
-HRESULT cdecklink_attributes_get_int(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, int64_t * value);
-HRESULT cdecklink_attributes_get_float(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, double * value);
-HRESULT cdecklink_attributes_get_string(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, const char ** value);
+unsigned long cdecklink_profile_attributes_add_ref(cdecklink_profile_attributes_t *obj);
+unsigned long cdecklink_profile_attributes_release(cdecklink_profile_attributes_t *obj);
+HRESULT cdecklink_profile_attributes_get_flag(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, bool * value);
+HRESULT cdecklink_profile_attributes_get_int(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, int64_t * value);
+HRESULT cdecklink_profile_attributes_get_float(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, double * value);
+HRESULT cdecklink_profile_attributes_get_string(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, const char ** value);
+
+unsigned long cdecklink_profile_iterator_add_ref(cdecklink_profile_iterator_t *obj);
+unsigned long cdecklink_profile_iterator_release(cdecklink_profile_iterator_t *obj);
+HRESULT cdecklink_profile_iterator_next(cdecklink_profile_iterator_t *obj, cdecklink_profile_t ** profile);
+
+unsigned long cdecklink_profile_add_ref(cdecklink_profile_t *obj);
+unsigned long cdecklink_profile_release(cdecklink_profile_t *obj);
+HRESULT cdecklink_profile_get_device(cdecklink_profile_t *obj, cdecklink_device_t ** device);
+HRESULT cdecklink_profile_is_active(cdecklink_profile_t *obj, bool * isActive);
+HRESULT cdecklink_profile_set_active(cdecklink_profile_t *obj);
+HRESULT cdecklink_profile_get_peers(cdecklink_profile_t *obj, cdecklink_profile_iterator_t ** profileIterator);
+
+unsigned long cdecklink_profile_manager_add_ref(cdecklink_profile_manager_t *obj);
+unsigned long cdecklink_profile_manager_release(cdecklink_profile_manager_t *obj);
+HRESULT cdecklink_profile_manager_get_profiles(cdecklink_profile_manager_t *obj, cdecklink_profile_iterator_t ** profileIterator);
+HRESULT cdecklink_profile_manager_get_profile(cdecklink_profile_manager_t *obj, DecklinkProfileID profileID, cdecklink_profile_t ** profile);
+HRESULT cdecklink_profile_manager_set_callback(cdecklink_profile_manager_t *obj, void *ctx, cdecklink_profile_callback_profile_changing* cb0, cdecklink_profile_callback_profile_activated* cb1);
 
 unsigned long cdecklink_status_add_ref(cdecklink_status_t *obj);
 unsigned long cdecklink_status_release(cdecklink_status_t *obj);
@@ -993,12 +1190,18 @@ cdecklink_iterator_t * cdecklink_create_decklink_iterator_instance();
 cdecklink_discovery_t * cdecklink_create_decklink_discovery_instance();
 cdecklink_api_information_t * cdecklink_create_decklink_api_information_instance();
 cdecklink_gl_screen_preview_helper_t * cdecklink_create_open_gl_screen_preview_helper();
+cdecklink_gl_screen_preview_helper_t * cdecklink_create_open_gl3_screen_preview_helper();
 cdecklink_video_conversion_t * cdecklink_create_video_conversion_instance();
+cdecklink_video_frame_ancillary_packets_t * cdecklink_create_video_frame_ancillary_packets_instance();
 HRESULT cdecklink_device_query_output(cdecklink_device_t *obj, cdecklink_output_t **dst);
 HRESULT cdecklink_device_query_input(cdecklink_device_t *obj, cdecklink_input_t **dst);
+HRESULT cdecklink_device_query_hdmi_input_edid(cdecklink_device_t *obj, cdecklink_hdmi_input_edid_t **dst);
 HRESULT cdecklink_device_query_encoder_input(cdecklink_device_t *obj, cdecklink_encoder_input_t **dst);
+HRESULT cdecklink_video_frame_query_video_frame_ancillary_packets(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_packets_t **dst);
 HRESULT cdecklink_video_frame_query_video_frame_ancillary(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_t **dst);
 HRESULT cdecklink_encoder_video_packet_query_h265nal_packet(cdecklink_encoder_video_packet_t *obj, cdecklink_h265nal_packet_t **dst);
+HRESULT cdecklink_device_query_profile_attributes(cdecklink_device_t *obj, cdecklink_profile_attributes_t **dst);
+HRESULT cdecklink_device_query_profile_manager(cdecklink_device_t *obj, cdecklink_profile_manager_t **dst);
 #ifdef __cplusplus
 };
 #endif
