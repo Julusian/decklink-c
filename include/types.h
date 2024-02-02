@@ -13,12 +13,16 @@ typedef void cdecklink_iterator_t;
 typedef void cdecklink_api_information_t;
 typedef void cdecklink_output_t;
 typedef void cdecklink_input_t;
+typedef void cdecklink_hdmi_input_edid_t;
 typedef void cdecklink_encoder_input_t;
 typedef void cdecklink_video_frame_t;
 typedef void cdecklink_mutable_video_frame_t;
 typedef void cdecklink_video_frame3_d_extensions_t;
 typedef void cdecklink_video_frame_metadata_extensions_t;
 typedef void cdecklink_video_input_frame_t;
+typedef void cdecklink_ancillary_packet_t;
+typedef void cdecklink_ancillary_packet_iterator_t;
+typedef void cdecklink_video_frame_ancillary_packets_t;
 typedef void cdecklink_video_frame_ancillary_t;
 typedef void cdecklink_encoder_packet_t;
 typedef void cdecklink_encoder_video_packet_t;
@@ -27,11 +31,13 @@ typedef void cdecklink_h265nal_packet_t;
 typedef void cdecklink_audio_input_packet_t;
 typedef void cdecklink_gl_screen_preview_helper_t;
 typedef void cdecklink_notification_t;
-typedef void cdecklink_attributes_t;
+typedef void cdecklink_profile_attributes_t;
+typedef void cdecklink_profile_iterator_t;
+typedef void cdecklink_profile_t;
+typedef void cdecklink_profile_manager_t;
 typedef void cdecklink_status_t;
 typedef void cdecklink_keyer_t;
 typedef void cdecklink_video_conversion_t;
 typedef void cdecklink_discovery_t;
-typedef void cdecklink_custom_video_frame_t;
 
-#endif // DECKLINK_C_TYPES_H
+#endif //DECKLINK_C_TYPES_H

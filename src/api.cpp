@@ -2,6 +2,7 @@
 #include "types.h"
 #include "../include/api.h"
 #include "callbacks.h"
+#include "platform.h"
 
 unsigned long cdecklink_timecode_add_ref(cdecklink_timecode_t *obj) {
 	return obj->AddRef();
@@ -20,7 +21,10 @@ HRESULT cdecklink_timecode_get_components(cdecklink_timecode_t *obj, uint8_t * h
 }
 
 HRESULT cdecklink_timecode_get_string(cdecklink_timecode_t *obj, const char ** timecode) {
-	return obj->GetString(timecode);
+	dlstring_t timecodeString;
+	HRESULT result = obj->GetString(&timecodeString);
+	DlToConstChar(timecodeString, timecode);
+	return result;
 }
 
 DecklinkTimecodeFlags cdecklink_timecode_get_flags(cdecklink_timecode_t *obj) {
@@ -54,7 +58,10 @@ unsigned long cdecklink_display_mode_release(cdecklink_display_mode_t *obj) {
 }
 
 HRESULT cdecklink_display_mode_get_name(cdecklink_display_mode_t *obj, const char ** name) {
-	return obj->GetName(name);
+	dlstring_t nameString;
+	HRESULT result = obj->GetName(&nameString);
+	DlToConstChar(nameString, name);
+	return result;
 }
 
 DecklinkDisplayMode cdecklink_display_mode_get_display_mode(cdecklink_display_mode_t *obj) {
@@ -91,11 +98,17 @@ unsigned long cdecklink_device_release(cdecklink_device_t *obj) {
 }
 
 HRESULT cdecklink_device_get_model_name(cdecklink_device_t *obj, const char ** modelName) {
-	return obj->GetModelName(modelName);
+	dlstring_t modelNameString;
+	HRESULT result = obj->GetModelName(&modelNameString);
+	DlToConstChar(modelNameString, modelName);
+	return result;
 }
 
 HRESULT cdecklink_device_get_display_name(cdecklink_device_t *obj, const char ** displayName) {
-	return obj->GetDisplayName(displayName);
+	dlstring_t displayNameString;
+	HRESULT result = obj->GetDisplayName(&displayNameString);
+	DlToConstChar(displayNameString, displayName);
+	return result;
 }
 
 
@@ -132,11 +145,14 @@ HRESULT cdecklink_configuration_get_float(cdecklink_configuration_t *obj, Deckli
 }
 
 HRESULT cdecklink_configuration_set_string(cdecklink_configuration_t *obj, DecklinkConfigurationID cfgID, const char * value) {
-	return obj->SetString(cfgID, value);
+	return obj->SetString(cfgID, ConstCharToDl(value));
 }
 
 HRESULT cdecklink_configuration_get_string(cdecklink_configuration_t *obj, DecklinkConfigurationID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_configuration_write_configuration_to_preferences(cdecklink_configuration_t *obj) {
@@ -177,11 +193,14 @@ HRESULT cdecklink_encoder_configuration_get_float(cdecklink_encoder_configuratio
 }
 
 HRESULT cdecklink_encoder_configuration_set_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char * value) {
-	return obj->SetString(cfgID, value);
+	return obj->SetString(cfgID, ConstCharToDl(value));
 }
 
 HRESULT cdecklink_encoder_configuration_get_string(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_encoder_configuration_get_bytes(cdecklink_encoder_configuration_t *obj, DecklinkEncoderConfigurationID cfgID, void * buffer, uint32_t * bufferSize) {
@@ -262,7 +281,10 @@ HRESULT cdecklink_deck_control_shuttle(cdecklink_deck_control_t *obj, double rat
 }
 
 HRESULT cdecklink_deck_control_get_timecode_string(cdecklink_deck_control_t *obj, const char ** currentTimeCode, DecklinkDeckControlError * error) {
-	return obj->GetTimecodeString(currentTimeCode, error);
+	dlstring_t currentTimeCodeString;
+	HRESULT result = obj->GetTimecodeString(&currentTimeCodeString, error);
+	DlToConstChar(currentTimeCodeString, currentTimeCode);
+	return result;
 }
 
 HRESULT cdecklink_deck_control_get_timecode(cdecklink_deck_control_t *obj, cdecklink_timecode_t ** currentTimecode, DecklinkDeckControlError * error) {
@@ -390,7 +412,10 @@ HRESULT cdecklink_api_information_get_float(cdecklink_api_information_t *obj, De
 }
 
 HRESULT cdecklink_api_information_get_string(cdecklink_api_information_t *obj, DecklinkAPIInformationID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 
@@ -402,8 +427,12 @@ unsigned long cdecklink_output_release(cdecklink_output_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_output_does_support_video_mode(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoOutputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode) {
-	return obj->DoesSupportVideoMode(displayMode, pixelFormat, flags, result, resultDisplayMode);
+HRESULT cdecklink_output_does_support_video_mode(cdecklink_output_t *obj, DecklinkVideoConnection connection, DecklinkDisplayMode requestedMode, DecklinkPixelFormat requestedPixelFormat, DecklinkVideoOutputConversionMode conversionMode, DecklinkSupportedVideoModeFlags flags, DecklinkDisplayMode * actualMode, bool * supported) {
+	return obj->DoesSupportVideoMode(connection, requestedMode, requestedPixelFormat, conversionMode, flags, actualMode, supported);
+}
+
+HRESULT cdecklink_output_get_display_mode(cdecklink_output_t *obj, DecklinkDisplayMode displayMode, cdecklink_display_mode_t ** resultDisplayMode) {
+	return obj->GetDisplayMode(displayMode, resultDisplayMode);
 }
 
 HRESULT cdecklink_output_get_display_mode_iterator(cdecklink_output_t *obj, cdecklink_display_mode_iterator_t ** iterator) {
@@ -526,8 +555,12 @@ unsigned long cdecklink_input_release(cdecklink_input_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_input_does_support_video_mode(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode) {
-	return obj->DoesSupportVideoMode(displayMode, pixelFormat, flags, result, resultDisplayMode);
+HRESULT cdecklink_input_does_support_video_mode(cdecklink_input_t *obj, DecklinkVideoConnection connection, DecklinkDisplayMode requestedMode, DecklinkPixelFormat requestedPixelFormat, DecklinkVideoInputConversionMode conversionMode, DecklinkSupportedVideoModeFlags flags, DecklinkDisplayMode * actualMode, bool * supported) {
+	return obj->DoesSupportVideoMode(connection, requestedMode, requestedPixelFormat, conversionMode, flags, actualMode, supported);
+}
+
+HRESULT cdecklink_input_get_display_mode(cdecklink_input_t *obj, DecklinkDisplayMode displayMode, cdecklink_display_mode_t ** resultDisplayMode) {
+	return obj->GetDisplayMode(displayMode, resultDisplayMode);
 }
 
 HRESULT cdecklink_input_get_display_mode_iterator(cdecklink_input_t *obj, cdecklink_display_mode_iterator_t ** iterator) {
@@ -593,6 +626,27 @@ HRESULT cdecklink_input_get_hardware_reference_clock(cdecklink_input_t *obj, Dec
 }
 
 
+unsigned long cdecklink_hdmi_input_edid_add_ref(cdecklink_hdmi_input_edid_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_hdmi_input_edid_release(cdecklink_hdmi_input_edid_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_hdmi_input_edid_set_int(cdecklink_hdmi_input_edid_t *obj, DecklinkHDMIInputEDIDID cfgID, int64_t value) {
+	return obj->SetInt(cfgID, value);
+}
+
+HRESULT cdecklink_hdmi_input_edid_get_int(cdecklink_hdmi_input_edid_t *obj, DecklinkHDMIInputEDIDID cfgID, int64_t * value) {
+	return obj->GetInt(cfgID, value);
+}
+
+HRESULT cdecklink_hdmi_input_edid_write_to_edid(cdecklink_hdmi_input_edid_t *obj) {
+	return obj->WriteToEDID();
+}
+
+
 unsigned long cdecklink_encoder_input_add_ref(cdecklink_encoder_input_t *obj) {
 	return obj->AddRef();
 }
@@ -601,8 +655,12 @@ unsigned long cdecklink_encoder_input_release(cdecklink_encoder_input_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_encoder_input_does_support_video_mode(cdecklink_encoder_input_t *obj, DecklinkDisplayMode displayMode, DecklinkPixelFormat pixelFormat, DecklinkVideoInputFlags flags, DecklinkDisplayModeSupport * result, cdecklink_display_mode_t ** resultDisplayMode) {
-	return obj->DoesSupportVideoMode(displayMode, pixelFormat, flags, result, resultDisplayMode);
+HRESULT cdecklink_encoder_input_does_support_video_mode(cdecklink_encoder_input_t *obj, DecklinkVideoConnection connection, DecklinkDisplayMode requestedMode, DecklinkPixelFormat requestedCodec, uint32_t requestedCodecProfile, DecklinkSupportedVideoModeFlags flags, bool * supported) {
+	return obj->DoesSupportVideoMode(connection, requestedMode, requestedCodec, requestedCodecProfile, flags, supported);
+}
+
+HRESULT cdecklink_encoder_input_get_display_mode(cdecklink_encoder_input_t *obj, DecklinkDisplayMode displayMode, cdecklink_display_mode_t ** resultDisplayMode) {
+	return obj->GetDisplayMode(displayMode, resultDisplayMode);
 }
 
 HRESULT cdecklink_encoder_input_get_display_mode_iterator(cdecklink_encoder_input_t *obj, cdecklink_display_mode_iterator_t ** iterator) {
@@ -775,7 +833,14 @@ HRESULT cdecklink_video_frame_metadata_extensions_get_flag(cdecklink_video_frame
 }
 
 HRESULT cdecklink_video_frame_metadata_extensions_get_string(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, const char ** value) {
-	return obj->GetString(metadataID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(metadataID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
+}
+
+HRESULT cdecklink_video_frame_metadata_extensions_get_bytes(cdecklink_video_frame_metadata_extensions_t *obj, DecklinkFrameMetadataID metadataID, void * buffer, uint32_t * bufferSize) {
+	return obj->GetBytes(metadataID, buffer, bufferSize);
 }
 
 
@@ -797,6 +862,77 @@ HRESULT cdecklink_video_input_frame_get_stream_time(cdecklink_video_input_frame_
 
 HRESULT cdecklink_video_input_frame_get_hardware_reference_timestamp(cdecklink_video_input_frame_t *obj, DecklinkTimeScale timeScale, DecklinkTimeValue * frameTime, DecklinkTimeValue * frameDuration) {
 	return obj->GetHardwareReferenceTimestamp(timeScale, frameTime, frameDuration);
+}
+
+
+unsigned long cdecklink_ancillary_packet_add_ref(cdecklink_ancillary_packet_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_ancillary_packet_release(cdecklink_ancillary_packet_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_ancillary_packet_get_bytes(cdecklink_ancillary_packet_t *obj, DecklinkAncillaryPacketFormat format, const void ** data, uint32_t * size) {
+	return obj->GetBytes(format, data, size);
+}
+
+uint8_t cdecklink_ancillary_packet_get_did(cdecklink_ancillary_packet_t *obj) {
+	return obj->GetDID();
+}
+
+uint8_t cdecklink_ancillary_packet_get_sdid(cdecklink_ancillary_packet_t *obj) {
+	return obj->GetSDID();
+}
+
+uint32_t cdecklink_ancillary_packet_get_line_number(cdecklink_ancillary_packet_t *obj) {
+	return obj->GetLineNumber();
+}
+
+uint8_t cdecklink_ancillary_packet_get_data_stream_index(cdecklink_ancillary_packet_t *obj) {
+	return obj->GetDataStreamIndex();
+}
+
+
+unsigned long cdecklink_ancillary_packet_iterator_add_ref(cdecklink_ancillary_packet_iterator_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_ancillary_packet_iterator_release(cdecklink_ancillary_packet_iterator_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_ancillary_packet_iterator_next(cdecklink_ancillary_packet_iterator_t *obj, cdecklink_ancillary_packet_t ** packet) {
+	return obj->Next(packet);
+}
+
+
+unsigned long cdecklink_video_frame_ancillary_packets_add_ref(cdecklink_video_frame_ancillary_packets_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_video_frame_ancillary_packets_release(cdecklink_video_frame_ancillary_packets_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_video_frame_ancillary_packets_get_packet_iterator(cdecklink_video_frame_ancillary_packets_t *obj, cdecklink_ancillary_packet_iterator_t ** iterator) {
+	return obj->GetPacketIterator(iterator);
+}
+
+HRESULT cdecklink_video_frame_ancillary_packets_get_first_packet_by_id(cdecklink_video_frame_ancillary_packets_t *obj, uint8_t DID, uint8_t SDID, cdecklink_ancillary_packet_t ** packet) {
+	return obj->GetFirstPacketByID(DID, SDID, packet);
+}
+
+HRESULT cdecklink_video_frame_ancillary_packets_attach_packet(cdecklink_video_frame_ancillary_packets_t *obj, cdecklink_ancillary_packet_t * packet) {
+	return obj->AttachPacket(packet);
+}
+
+HRESULT cdecklink_video_frame_ancillary_packets_detach_packet(cdecklink_video_frame_ancillary_packets_t *obj, cdecklink_ancillary_packet_t * packet) {
+	return obj->DetachPacket(packet);
+}
+
+HRESULT cdecklink_video_frame_ancillary_packets_detach_all_packets(cdecklink_video_frame_ancillary_packets_t *obj) {
+	return obj->DetachAllPackets();
 }
 
 
@@ -968,28 +1104,91 @@ unsigned long cdecklink_notification_release(cdecklink_notification_t *obj) {
 }
 
 
-unsigned long cdecklink_attributes_add_ref(cdecklink_attributes_t *obj) {
+unsigned long cdecklink_profile_attributes_add_ref(cdecklink_profile_attributes_t *obj) {
 	return obj->AddRef();
 }
 
-unsigned long cdecklink_attributes_release(cdecklink_attributes_t *obj) {
+unsigned long cdecklink_profile_attributes_release(cdecklink_profile_attributes_t *obj) {
 	return obj->Release();
 }
 
-HRESULT cdecklink_attributes_get_flag(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, bool * value) {
+HRESULT cdecklink_profile_attributes_get_flag(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, bool * value) {
 	return obj->GetFlag(cfgID, value);
 }
 
-HRESULT cdecklink_attributes_get_int(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, int64_t * value) {
+HRESULT cdecklink_profile_attributes_get_int(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, int64_t * value) {
 	return obj->GetInt(cfgID, value);
 }
 
-HRESULT cdecklink_attributes_get_float(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, double * value) {
+HRESULT cdecklink_profile_attributes_get_float(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, double * value) {
 	return obj->GetFloat(cfgID, value);
 }
 
-HRESULT cdecklink_attributes_get_string(cdecklink_attributes_t *obj, DecklinkAttributeID cfgID, const char ** value) {
-	return obj->GetString(cfgID, value);
+HRESULT cdecklink_profile_attributes_get_string(cdecklink_profile_attributes_t *obj, DecklinkAttributeID cfgID, const char ** value) {
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(cfgID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
+}
+
+
+unsigned long cdecklink_profile_iterator_add_ref(cdecklink_profile_iterator_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_profile_iterator_release(cdecklink_profile_iterator_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_profile_iterator_next(cdecklink_profile_iterator_t *obj, cdecklink_profile_t ** profile) {
+	return obj->Next(profile);
+}
+
+
+unsigned long cdecklink_profile_add_ref(cdecklink_profile_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_profile_release(cdecklink_profile_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_profile_get_device(cdecklink_profile_t *obj, cdecklink_device_t ** device) {
+	return obj->GetDevice(device);
+}
+
+HRESULT cdecklink_profile_is_active(cdecklink_profile_t *obj, bool * isActive) {
+	return obj->IsActive(isActive);
+}
+
+HRESULT cdecklink_profile_set_active(cdecklink_profile_t *obj) {
+	return obj->SetActive();
+}
+
+HRESULT cdecklink_profile_get_peers(cdecklink_profile_t *obj, cdecklink_profile_iterator_t ** profileIterator) {
+	return obj->GetPeers(profileIterator);
+}
+
+
+unsigned long cdecklink_profile_manager_add_ref(cdecklink_profile_manager_t *obj) {
+	return obj->AddRef();
+}
+
+unsigned long cdecklink_profile_manager_release(cdecklink_profile_manager_t *obj) {
+	return obj->Release();
+}
+
+HRESULT cdecklink_profile_manager_get_profiles(cdecklink_profile_manager_t *obj, cdecklink_profile_iterator_t ** profileIterator) {
+	return obj->GetProfiles(profileIterator);
+}
+
+HRESULT cdecklink_profile_manager_get_profile(cdecklink_profile_manager_t *obj, DecklinkProfileID profileID, cdecklink_profile_t ** profile) {
+	return obj->GetProfile(profileID, profile);
+}
+
+HRESULT cdecklink_profile_manager_set_callback(cdecklink_profile_manager_t *obj, void *ctx, cdecklink_profile_callback_profile_changing* cb0, cdecklink_profile_callback_profile_activated* cb1) {
+	IDeckLinkProfileCallback * handler = cdecklink_internal_callback_create_deck_link_profile_callback(ctx, cb0, cb1);
+	return obj->SetCallback(handler);
 }
 
 
@@ -1014,7 +1213,10 @@ HRESULT cdecklink_status_get_float(cdecklink_status_t *obj, DecklinkStatusID sta
 }
 
 HRESULT cdecklink_status_get_string(cdecklink_status_t *obj, DecklinkStatusID statusID, const char ** value) {
-	return obj->GetString(statusID, value);
+	dlstring_t valueString;
+	HRESULT result = obj->GetString(statusID, &valueString);
+	DlToConstChar(valueString, value);
+	return result;
 }
 
 HRESULT cdecklink_status_get_bytes(cdecklink_status_t *obj, DecklinkStatusID statusID, void * buffer, uint32_t * bufferSize) {
@@ -1098,8 +1300,16 @@ cdecklink_gl_screen_preview_helper_t * cdecklink_create_open_gl_screen_preview_h
 	return CreateOpenGLScreenPreviewHelper();
 }
 
+cdecklink_gl_screen_preview_helper_t * cdecklink_create_open_gl3_screen_preview_helper() {
+	return CreateOpenGL3ScreenPreviewHelper();
+}
+
 cdecklink_video_conversion_t * cdecklink_create_video_conversion_instance() {
 	return CreateVideoConversionInstance();
+}
+
+cdecklink_video_frame_ancillary_packets_t * cdecklink_create_video_frame_ancillary_packets_instance() {
+	return CreateVideoFrameAncillaryPacketsInstance();
 }
 
 HRESULT cdecklink_device_query_output(cdecklink_device_t *obj, cdecklink_output_t **dst) {
@@ -1110,8 +1320,16 @@ HRESULT cdecklink_device_query_input(cdecklink_device_t *obj, cdecklink_input_t 
 	return obj->QueryInterface(IID_IDeckLinkInput, reinterpret_cast<void**>(dst));
 }
 
+HRESULT cdecklink_device_query_hdmi_input_edid(cdecklink_device_t *obj, cdecklink_hdmi_input_edid_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkHDMIInputEDID, reinterpret_cast<void**>(dst));
+}
+
 HRESULT cdecklink_device_query_encoder_input(cdecklink_device_t *obj, cdecklink_encoder_input_t **dst) {
 	return obj->QueryInterface(IID_IDeckLinkEncoderInput, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_video_frame_query_video_frame_ancillary_packets(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_packets_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkVideoFrameAncillaryPackets, reinterpret_cast<void**>(dst));
 }
 
 HRESULT cdecklink_video_frame_query_video_frame_ancillary(cdecklink_video_frame_t *obj, cdecklink_video_frame_ancillary_t **dst) {
@@ -1120,5 +1338,13 @@ HRESULT cdecklink_video_frame_query_video_frame_ancillary(cdecklink_video_frame_
 
 HRESULT cdecklink_encoder_video_packet_query_h265nal_packet(cdecklink_encoder_video_packet_t *obj, cdecklink_h265nal_packet_t **dst) {
 	return obj->QueryInterface(IID_IDeckLinkH265NALPacket, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_device_query_profile_attributes(cdecklink_device_t *obj, cdecklink_profile_attributes_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkProfileAttributes, reinterpret_cast<void**>(dst));
+}
+
+HRESULT cdecklink_device_query_profile_manager(cdecklink_device_t *obj, cdecklink_profile_manager_t **dst) {
+	return obj->QueryInterface(IID_IDeckLinkProfileManager, reinterpret_cast<void**>(dst));
 }
 

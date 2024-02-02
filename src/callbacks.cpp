@@ -304,6 +304,49 @@ IDeckLinkNotificationCallback* cdecklink_internal_callback_create_deck_link_noti
 	return nullptr;
 }
 
+class DeckLinkProfileCallback final : public IDeckLinkProfileCallback {
+	std::atomic<int> ref_count_{0};
+	void *ctx_;
+	cdecklink_profile_callback_profile_changing *cb0_;
+	cdecklink_profile_callback_profile_activated *cb1_;
+
+public:
+	DeckLinkProfileCallback (void *ctx, cdecklink_profile_callback_profile_changing *cb0, cdecklink_profile_callback_profile_activated *cb1)
+	: ctx_(ctx), cb0_(cb0), cb1_(cb1) {}
+
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID, LPVOID *) override { return E_NOINTERFACE; }
+	ULONG STDMETHODCALLTYPE AddRef() override { return ++ref_count_; }
+	ULONG STDMETHODCALLTYPE Release() override {
+		if (--ref_count_ == 0) {
+			delete this;
+			return 0;
+		}
+		return ref_count_;
+	}
+
+	HRESULT ProfileChanging(IDeckLinkProfile * profileToBeActivated, bool streamsWillBeForcedToStop) override {
+		if (cb0_ != nullptr) {
+			return cb0_(ctx_, profileToBeActivated, streamsWillBeForcedToStop);
+		}
+		return S_FALSE;
+	}
+
+	HRESULT ProfileActivated(IDeckLinkProfile * activatedProfile) override {
+		if (cb1_ != nullptr) {
+			return cb1_(ctx_, activatedProfile);
+		}
+		return S_FALSE;
+	}
+
+};
+
+IDeckLinkProfileCallback* cdecklink_internal_callback_create_deck_link_profile_callback (void *ctx, cdecklink_profile_callback_profile_changing *cb0, cdecklink_profile_callback_profile_activated *cb1) {
+	if (cb0 != nullptr || cb1 != nullptr) {
+		return new DeckLinkProfileCallback(ctx, cb0, cb1);
+	}
+	return nullptr;
+}
+
 class DeckLinkDeviceNotificationCallback final : public IDeckLinkDeviceNotificationCallback {
 	std::atomic<int> ref_count_{0};
 	void *ctx_;
